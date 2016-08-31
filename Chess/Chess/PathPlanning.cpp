@@ -4,6 +4,7 @@
 #include"Board.h"
 #include"BoardUtility.h"
 #include<iostream>
+#include<chrono>
 
 template <>
 void printBoardData<Move>(BoardData<Move>& data) {
@@ -34,7 +35,7 @@ bool sortMoves(std::pair<int, Position>& lhs, std::pair<int, Position>& rhs) {
 	return lhs.first < rhs.first;
 };
 
-bool getPath_Naiive(Board<std::string>& B, BoardData<Move>& visited, Position K, int moves)
+bool getPath(Board<std::string>& B, BoardData<Move>& visited, Position K, int moves, bool A_Star)
 {
 	//Return TRUE condition for recursion
 	//If we have reached the Goal, return true;
@@ -47,7 +48,7 @@ bool getPath_Naiive(Board<std::string>& B, BoardData<Move>& visited, Position K,
 	Moves possMoves;
 	//at position K.
 	//Get a list of open positions
-	B.getValidMoves(K, possMoves);
+	B.getValidMoves(K, possMoves, A_Star);
 
 	if (possMoves.size() == 0) //No valid moves exist...backtrack
 		return false;
@@ -55,35 +56,37 @@ bool getPath_Naiive(Board<std::string>& B, BoardData<Move>& visited, Position K,
 	//for (auto move : possMoves) {
 	//	std::cout << move.second.X << " " << move.second.Y << "\n";
 	//}
-	//std::sort(possMoves.begin(), possMoves.end(), sortMoves);
+	std::sort(possMoves.begin(), possMoves.end(), sortMoves);
 	for (auto move : possMoves) {
 		std::vector<Position> path;
 		//std::cout << move.second.X <<" " << move.second.Y <<"\n";
 		//If a node has been visited or if the previous cost of reaching the node is less than current cost + node cost...go to next node
-		if (visited[move.second.Y][move.second.X].first > -1 && visited[move.second.Y][move.second.X].first <= moves + 1) {
+		
+		if (visited[move.second.Y][move.second.X].first > -1 && visited[move.second.Y][move.second.X].first <= moves + move.first) {
 			continue;
 		}
 		else {
 			visited[move.second.Y][move.second.X].first = moves + 1;
 			visited[move.second.Y][move.second.X].second = K;
-			getPath_Naiive(B, visited, move.second, moves + 1);
+			getPath(B, visited, move.second, moves + 1, A_Star);
 			}
 	}
 	return false;
 }
 
-void solve(Board<std::string>& B) {
+void solve(Board<std::string>& B, bool Astar) {
 	BoardData<Move> visited = BoardData<Move>{ B.height , std::vector<Move>{B.width, Move(-1, Position{0,0}) } };
 	//BoardData<Move> visited = BoardData<Move>{ B.height , std::vector<Move>{B.width, Move(-1, Position{0,0}) } };
 	int moves = 0;
 	visited[B.getStart().Y][B.getStart().X].first = 0;
 	
 	std::vector<Position> bestPath;
-
-	getPath_Naiive(B, visited, B.getStart(), moves);
+	int pathCost = 0;
+	getPath(B, visited, B.getStart(), moves, Astar);
 	Position K = B.getEnd();
+	pathCost = visited[K.Y][K.X].first;
 	//If the visited cell for END is marked, it means a path was found
-	if (visited[K.Y][K.X].first > -1){
+	if (pathCost > -1){
 		//If a valid path was found..we can take the path from the 'visited' datastructure;
 		
 		bestPath.push_back(K);
@@ -92,7 +95,7 @@ void solve(Board<std::string>& B) {
 			bestPath.push_back(P);
 			K = P;
 		}
-		std::cout << "\nPath found with length " << bestPath.size() - 1 << "\nStart\n";
+		std::cout << "\nPath found with length " << bestPath.size() - 1 <<" and cost " <<pathCost << "\nStart\n";
 		std::reverse(bestPath.begin(), bestPath.end());
 
 		printPath(bestPath);
@@ -106,12 +109,12 @@ void solve(Board<std::string>& B) {
 }
 
 void task2() {
-	size_t BOARD_HEIGHT = 7;
-	size_t BOARD_WIDTH = 7;
+	size_t BOARD_HEIGHT = 20;
+	size_t BOARD_WIDTH = 20;
 	size_t Start_X = 2;
 	size_t Start_Y = 2;
-	size_t End_X = 6;
-	size_t End_Y = 6;
+	size_t End_X = 18;
+	size_t End_Y = 18;
 
 	Board<std::string> KB{BOARD_HEIGHT, BOARD_WIDTH};
 	bool ret = KB.setStart(Start_X, Start_Y);
@@ -132,14 +135,23 @@ void task2() {
 
 	//KB.setPoint(0, 4, "B");
 	KB.setPoint(4, 4, "B");
-	KB.setPoint(1, 4, "B");
+	KB.setPoint(1, 4, "W");
 	KB.setPoint(2, 4, "B");
-	KB.setPoint(3, 4, "B");
+	KB.setPoint(3, 4, "W");
 	KB.setPoint(5, 3, "B");
-	//KB.setPoint(6, 4, "B");
-
+	KB.setPoint(4, 5, "B");
+	KB.setPoint(5, 4, "B");
+	KB.setPoint(4, 6, "B");
 	KB.printBoardState();
-	solve(KB);
+	std::cout << "\n";
+	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+	solve(KB, true); //True for Astar algo
+	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+
+	std::cout << duration;
+	
 	std::cin.get();
 
 }
