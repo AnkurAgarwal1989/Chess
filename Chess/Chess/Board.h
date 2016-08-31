@@ -1,16 +1,49 @@
+#pragma once
 #include<vector>
+#include<algorithm>
+#include<utility>
+#include<map>
+#include<array>
 #include<math.h>
+
+/***************************************************************/
+//Type to contain data on board.
 template <typename T>
 using BoardData = std::vector< std::vector<T> >;
 
+template <typename T>
+void printBoardData(BoardData<T>& data) {
+	for (auto y_iter : data) {
+		for (auto x_iter : y_iter) {
+			std::cout << x_iter << " ";
+		}
+		std::cout << "\n";
+	}
+}
+/***************************************************************/
 
+
+/***************************************************************/
+//Struct to handle position values
+//This Position should only hold values that can fit on the board
 struct Position {
 	unsigned int X;
 	unsigned int Y;
 
 	Position(unsigned int x, unsigned int y) :X(x), Y(y) {};
-	
+	Position(int x, int y) :X(x), Y(y) {};
 };
+/***************************************************************/
+
+
+//Alias to hold Cost(first) and New Position (second) 
+//We will sort on first for smallest cost.
+using Moves = std::vector< std::pair<int, Position>>;
+
+//Function to sort on the first value of the PossibleMoves
+/*bool sortMoves(std::pair<int, Position>& lhs, std::pair<int, Position>& rhs) {
+	return lhs.first < rhs.first;
+};*/
 
 
 template <typename T>
@@ -19,27 +52,49 @@ struct Board {
 	size_t width;
 	BoardData<T> boardData;
 
+	std::map<std::string, int> COST;
+
+	//Arrays to keep account of the moves the knight can make
+	std::array<int, 4> Dx{ 0, -1, 1, 0 };
+	std::array<int, 4> Dy{ -1, 0, 0, 1 };
+
+	std::array<int, 8> Mx{ 1, -1, -2, -2, 2, 2, 1, -1 };
+	std::array<int, 8> My{ -2, -2, 1, -1, 1, -1, 2, 2 };
+
+	
 	Board(size_t boardHeight, size_t boardWidth){
 		height = boardHeight;
 		width = boardWidth;
 		boardData = BoardData<T>{ height, { width, "." }};
+		COST["."] = 1;
+		COST["W"] = 2;
+		COST["L"] = 5;
 	}
 
-	//Function to validate if a point if valid (inside the board boundaries)
-	//returns true if point is valid
-	bool validPoint(const int X, const int Y) {  //We want to make these int to check for negative numbers 
-		return (X >= 0 && X < width && Y >= 0 && Y < height);
-	}
-
-	//Function to check if move is a valid Knight Move
-	//Ensure that the newK is a valid point first.
-	//Knight moves 2 steps in 1 direction and 1 in the other.
-	bool validKnightMove(Position prevK, const int nextK_x, const int nextK_y) {
-		if (validPoint(nextK_x, nextK_y)) {
-			if (std::abs(static_cast<int>(prevK.X) - nextK_x) * std::abs(static_cast<int>(prevK.Y) - nextK_y) == 2)
-				return true;
+	bool setStart(const unsigned int X, const unsigned int Y) {
+		if (setPoint(X, Y, "S")) {
+			Start.X = X;
+			Start.Y = Y;
+			return true;
 		}
 		return false;
+	}
+
+	const Position getStart() {
+		return Start;
+	}
+
+	bool setEnd(const unsigned int X, const unsigned int Y) {
+		if (setPoint(X, Y, "E")) {
+			End.X = X;
+			End.Y = Y;
+			return true;
+		}
+		return false;
+	}
+
+	const Position getEnd() {
+		return End;
 	}
 
 	//Utility function to add a point to the chessboard
@@ -47,11 +102,50 @@ struct Board {
 	//returns true if successful
 	//returns false if not a valid point
 	bool setPoint(const unsigned int X, const unsigned int Y, const std::string pointName) {
-		if (validPoint(X, Y)) {
+		if (pointWithinBoundary(X, Y)) {
 			boardData[Y][X] = pointName;
 			return true;
 		}
 		return false;
+	}
+	
+	//Function to validate if a point is inside the board boundaries)
+	//returns true if point is valid
+	//Points wihtin the boundary can then be converted to unsigned ints
+	bool pointWithinBoundary(const int X, const int Y) {  //We want to make these int to check for negative numbers 
+		return (X >= 0 && X < static_cast<int>(width) && Y >= 0 && Y < static_cast<int>(height));
+	}
+
+	//Function to check if point lies within board bounadaries
+	//Also checks if destination is a Rock or Barrier...we can not go to these
+	bool validMove(const int X, const int Y) {
+		if (pointWithinBoundary(X, Y)) {
+			if (boardData[Y][X] == "R" || boardData[Y][X] == "B")
+				return false;
+			return true;
+		}
+		return false;
+	}
+
+	//Function to check if move is a valid Knight Move
+	//Function will take 2 valid positions
+	bool validKnightMove(const Position prevK, const int nextK_x, const int nextK_y) {
+		if (validMove(nextK_x, const int nextK_y))
+			if (std::abs(static_cast<int>(prevK.X) - static_cast<int>(nextK.X)) * std::abs(static_cast<int>(prevK.Y) - static_cast<int>(nextK.Y)) == 2)
+				return true;
+		return false;
+	}
+
+	//Function to check if we will hit the barrier when moving in a direction
+	bool isBarrierInPath(Position K, const int dX, const int dY) {
+		int newX = K.X + dX;
+		int newY = K.Y + dY;
+		if (pointWithinBoundary(newX, newY)) //if it is not a valid move...return true so the isBarrier can flag it
+			if (boardData[newY][newX] == "B")
+				return true;
+			else
+				return false;
+		return true;
 	}
 
 	//Function to print the current state of the board
@@ -65,12 +159,7 @@ struct Board {
 			curVal_K = boardData[K.Y][K.X];
 			boardData[K.Y][K.X] = "K";
 		}
-		for (auto y_iter : boardData) {
-			for (auto x_iter : y_iter) {
-				std::cout << x_iter << " ";
-			}
-			std::cout << "\n";
-		}
+		printBoardData(boardData);
 		if (printKnight) { //revert
 			boardData[K.Y][K.X] = curVal_K;
 		}
@@ -78,6 +167,10 @@ struct Board {
 
 	//print board state only without the knight position
 	void printBoardState() {
-		printBoardState(false, { 0,0 });
+		printBoardData(boardData);
 	}
+
+private:
+	Position Start{ 0,0 };
+	Position End{ 0,0 };
 };

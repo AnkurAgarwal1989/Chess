@@ -55,7 +55,7 @@ bool test3() {
 	
 	std::vector<int> Kseq{ 2,6, 10,2, 3,4, 5,6 };
 	for (unsigned int i = 0; i < Kseq.size() - 1; i+=2) {
-		if (KB.validPoint(Kseq[i], Kseq[i+1])) {
+		if (KB.validMove(Kseq[i], Kseq[i+1])) {
 			//Since we have made sure the points are valid, we can static cast to unsigned int
 			Position KP{ static_cast<unsigned int>(Kseq[i]), static_cast<unsigned int>(Kseq[i + 1])}; //This maintains curent position of the knight on the board
 			KB.printBoardState(true, KP);
@@ -90,28 +90,30 @@ void signalHandler(int signum) {
 	exit(signum);
 }
 
-bool validateSequence(Board<std::string>& B, unsigned int startX, unsigned int startY) {
+bool validateSequence(Board<std::string>& B) {
 	signal(SIGINT, signalHandler);
 	std::cout << "Please number 2 numbers (x, y) position of the Knight. Ctrl+C to exit.\n";
 	int nextK_x, nextK_y;
-	unsigned int prevK_x = startX;
-	unsigned int prevK_Y = startY;
-	Position KP{ startX, startY };
+	
+	Position K_prev{B.getStart()};
 	while (1) {
 		std::cin >> nextK_x >> nextK_y;
-		if (B.validKnightMove(KP, nextK_x, nextK_y)) {
+		
+		if (B.validKnightMove(K_prev, nextK_x, nextK_y)) {
+			Position K_next{ nextK_x, nextK_y };
 			//Since we have made sure the points are valid, we can static cast to unsigned int
-			KP.X = static_cast<unsigned int>(nextK_x);
-			KP.Y = static_cast<unsigned int>(nextK_y);//This maintains curent position of the knight on the board
-			std::cout << "Knight moved to location " << nextK_x <<", " << nextK_y<< "\n";
-			B.printBoardState(true, KP);
+			K_prev = K_next;
+			std::cout << "Knight moved to location " << K_next.X << ", " << K_next.Y << "\n";
+			B.printBoardState(true, K_prev);
 			std::cin.clear();
 			std::cin.ignore(INT_MAX, '\n');
 		}
+
 		else {
 			std::cout << "The knight can not be placed at the location: (" << nextK_x << ", " << nextK_y << ")\n";
 			std::cin.clear();
 			std::cin.ignore(INT_MAX, '\n');
+		}
 		}
 	}
 }
@@ -135,12 +137,12 @@ int main(int argc, char* argv[]) {
 		size_t End_X = atoi(argv[5]);
 		size_t End_Y = atoi(argv[6]);
 		Board<std::string> KB{ BOARD_HEIGHT, BOARD_WIDTH };
-		bool ret = KB.setPoint(Start_X, Start_Y, "S");
-		ret &= KB.setPoint(End_X, End_X, "E");
+		bool ret = KB.setStart(Start_X, Start_Y);
+		ret &= KB.setEnd(End_X, End_X);
 		if (ret) {
 			std::cout << "Initial State of Knight Board \n";
 			KB.printBoardState();
-			validateSequence(KB, Start_X, Start_Y);
+			validateSequence(KB);
 		}
 		else {
 			std::cout << "Start or End Point is OUTSIDE checkerboard area. Exiting";

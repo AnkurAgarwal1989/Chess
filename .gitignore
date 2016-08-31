@@ -279,3 +279,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+*.db
+*.vcxproj
+Chess/Chess/Chess.vcxproj.filters
