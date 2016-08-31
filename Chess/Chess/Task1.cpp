@@ -1,3 +1,4 @@
+#pragma once
 #include<iostream>
 #include<stdio.h>
 #include<vector>
@@ -8,6 +9,7 @@
 #include"Board.h"
 
 
+void task2();
 
 int test1() {
 	unsigned int BOARD_HEIGHT = 7;  // Number of ROWS on baord
@@ -55,7 +57,7 @@ bool test3() {
 	
 	std::vector<int> Kseq{ 2,6, 10,2, 3,4, 5,6 };
 	for (unsigned int i = 0; i < Kseq.size() - 1; i+=2) {
-		if (KB.validMove(Kseq[i], Kseq[i+1])) {
+		if (KB.isValidMove(Kseq[i], Kseq[i+1])) {
 			//Since we have made sure the points are valid, we can static cast to unsigned int
 			Position KP{ static_cast<unsigned int>(Kseq[i]), static_cast<unsigned int>(Kseq[i + 1])}; //This maintains curent position of the knight on the board
 			KB.printBoardState(true, KP);
@@ -99,7 +101,7 @@ bool validateSequence(Board<std::string>& B) {
 	while (1) {
 		std::cin >> nextK_x >> nextK_y;
 		
-		if (B.validKnightMove(K_prev, nextK_x, nextK_y)) {
+		if (B.isValidKnightMove(K_prev, nextK_x, nextK_y)) {
 			Position K_next{ nextK_x, nextK_y };
 			//Since we have made sure the points are valid, we can static cast to unsigned int
 			K_prev = K_next;
@@ -119,7 +121,8 @@ bool validateSequence(Board<std::string>& B) {
 
 int main(int argc, char* argv[]) {
 
-	if (argc < 2) {
+	task2();
+	/*if (argc < 2) {
 		printHelp();
 	}
 
@@ -149,7 +152,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	std::cin.get();
+	std::cin.get();*/
 
 
 	return 1;
