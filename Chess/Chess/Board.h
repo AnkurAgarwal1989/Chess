@@ -1,5 +1,5 @@
 #include<vector>
-
+#include<math.h>
 template <typename T>
 using BoardData = std::vector< std::vector<T> >;
 
@@ -29,6 +29,17 @@ struct Board {
 	//returns true if point is valid
 	bool validPoint(const int X, const int Y) {  //We want to make these int to check for negative numbers 
 		return (X >= 0 && X < width && Y >= 0 && Y < height);
+	}
+
+	//Function to check if move is a valid Knight Move
+	//Ensure that the newK is a valid point first.
+	//Knight moves 2 steps in 1 direction and 1 in the other.
+	bool validKnightMove(Position prevK, const int nextK_x, const int nextK_y) {
+		if (validPoint(nextK_x, nextK_y)) {
+			if (std::abs(static_cast<int>(prevK.X) - nextK_x) * std::abs(static_cast<int>(prevK.Y) - nextK_y) == 2)
+				return true;
+		}
+		return false;
 	}
 
 	//Utility function to add a point to the chessboard

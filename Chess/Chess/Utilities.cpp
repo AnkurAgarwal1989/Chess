@@ -90,23 +90,26 @@ void signalHandler(int signum) {
 	exit(signum);
 }
 
-bool validateSequence(Board<std::string>& B) {
+bool validateSequence(Board<std::string>& B, unsigned int startX, unsigned int startY) {
 	signal(SIGINT, signalHandler);
 	std::cout << "Please number 2 numbers (x, y) position of the Knight. Ctrl+C to exit.\n";
-	int k_x, k_y;
+	int nextK_x, nextK_y;
+	unsigned int prevK_x = startX;
+	unsigned int prevK_Y = startY;
+	Position KP{ startX, startY };
 	while (1) {
-		std::cin >> k_x >> k_y;
-		if (B.validPoint(k_x, k_y)) {
+		std::cin >> nextK_x >> nextK_y;
+		if (B.validKnightMove(KP, nextK_x, nextK_y)) {
 			//Since we have made sure the points are valid, we can static cast to unsigned int
-			Position KP{ static_cast<unsigned int>(k_x), static_cast<unsigned int>(k_y) }; //This maintains curent position of the knight on the board
-			std::cout << "Knight moved to location " <<k_x <<", " << k_y<< "\n";
-
+			KP.X = static_cast<unsigned int>(nextK_x);
+			KP.Y = static_cast<unsigned int>(nextK_y);//This maintains curent position of the knight on the board
+			std::cout << "Knight moved to location " << nextK_x <<", " << nextK_y<< "\n";
 			B.printBoardState(true, KP);
 			std::cin.clear();
 			std::cin.ignore(INT_MAX, '\n');
 		}
 		else {
-			std::cout << "The knight can not be placed at the location: (" << k_x << ", " << k_y << ")\n";
+			std::cout << "The knight can not be placed at the location: (" << nextK_x << ", " << nextK_y << ")\n";
 			std::cin.clear();
 			std::cin.ignore(INT_MAX, '\n');
 		}
@@ -137,11 +140,11 @@ int main(int argc, char* argv[]) {
 		if (ret) {
 			std::cout << "Initial State of Knight Board \n";
 			KB.printBoardState();
-			validateSequence(KB);
+			validateSequence(KB, Start_X, Start_Y);
 		}
 		else {
 			std::cout << "Start or End Point is OUTSIDE checkerboard area. Exiting";
-			exit;
+			exit(1);
 		}
 	}
 
