@@ -4,7 +4,10 @@
 #include"Board.h"
 #include"BoardUtility.h"
 #include<iostream>
+#include<fstream>
 #include<chrono>
+
+#include<iostream>
 
 template <>
 void printBoardData<Move>(BoardData<Move>& data) {
@@ -108,6 +111,32 @@ void solve(Board<std::string>& B, bool Astar) {
 
 }
 
+void readGameFile(Board<std::string>& B, std::string filename) {
+	std::ifstream fs(filename);
+	std::string line;
+	size_t id_x = 0;
+	size_t id_y = 0;
+
+	while (std::getline(fs, line))
+	{
+		for (auto c : line) {
+			B.setPoint(id_x, id_y, std::string(1, c));
+			++id_x;
+			
+			if (id_x == B.width - 1) {
+				id_x = 0;
+				++id_y;
+			}
+			if (id_y == B.height) {
+				std::cout << "File has more data than Game Size. Only reading some part of file\n";
+				break;
+			}
+			std::cout << c;
+		}
+
+	}
+}
+
 void task2() {
 	size_t BOARD_HEIGHT = 20;
 	size_t BOARD_WIDTH = 20;
@@ -117,6 +146,7 @@ void task2() {
 	size_t End_Y = 18;
 
 	Board<std::string> KB{BOARD_HEIGHT, BOARD_WIDTH};
+	readGameFile(KB, "map.txt");
 	bool ret = KB.setStart(Start_X, Start_Y);
 	ret &= KB.setEnd(End_X, End_X);
 	if (ret) {
@@ -155,3 +185,4 @@ void task2() {
 	std::cin.get();
 
 }
+
