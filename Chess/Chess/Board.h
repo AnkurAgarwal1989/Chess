@@ -6,13 +6,14 @@
 #include<array>
 #include"BoardUtility.h"
 
+using TeleportPoints = std::vector<std::pair<Position, Position>>;
 
 template <typename T>
 struct Board {
 	size_t height;
 	size_t width;
 	BoardData<T> boardData;
-
+	TeleportPoints listTeleport;
 	std::map<std::string, int> COST;
 
 	//Arrays to keep account of the moves the knight can make
@@ -30,6 +31,7 @@ struct Board {
 		COST["."] = 1;
 		COST["W"] = 2;
 		COST["L"] = 5;
+		COST["T"] = 1;
 	}
 
 	bool setStart(const unsigned int X, const unsigned int Y) {
@@ -62,10 +64,38 @@ struct Board {
 	//Use this to only add Start, End or terrain points like W R B etc.
 	//returns true if successful
 	//returns false if not a valid point
-	bool setPoint(const unsigned int X, const unsigned int Y, const std::string pointName) {
+	bool setPoint(const int X, const int Y, const std::string pointName) {
 		if (isPointWithinBoundary(X, Y)) {
 			boardData[Y][X] = pointName;
 			return true;
+		}
+		return false;
+	}
+
+	//Function to maintain a vector of teleport pairs
+	bool addTeleportPoints(const int X1, const int Y1, const int X2, const int Y2) {
+		if (setPoint(X1, Y1, "T") && setPoint(X2, Y2, "T")) {
+			listTeleport.push_back(std::make_pair(Position{ X1, Y1 }, Position{ X2, Y2 }));
+			return true;
+		}
+		return false;
+	}
+
+	//Function to check if current point is a Teleport point
+	//if yes, this updates the point to teleport location
+	bool canTeleport(Position& p) {
+		if (boardData[p.Y][p.X] == "T") {
+			///Check if the point is a Teleport point. if true this point needs to be made the teleport exit
+			for (auto t : listTeleport) {
+				if (p == t.first) {  //If point same as any of the points in a teleport pair, move this point to other point.
+					p = t.second;
+					return true;
+				}
+				else if (p == t.second) {
+					p = t.first;
+					return true;
+				}
+			}
 		}
 		return false;
 	}
@@ -90,11 +120,12 @@ struct Board {
 
 	//Function to check if move is a valid Knight Move
 	//Function will take 2 valid positions
-	bool isValidKnightMove(const Position prevK, const int nextK_x, const int nextK_y) {
+	bool isValidKnightMove(Position& prevK, const int nextK_x, const int nextK_y) {
 		if (isValidMove(nextK_x, nextK_y)) {
 			Position nextK{ nextK_x, nextK_y };
-			if (std::abs(static_cast<int>(prevK.X) - static_cast<int>(nextK.X)) * std::abs(static_cast<int>(prevK.Y) - static_cast<int>(nextK.Y)) == 2)
+			if (std::abs(static_cast<int>(prevK.X) - static_cast<int>(nextK.X)) * std::abs(static_cast<int>(prevK.Y) - static_cast<int>(nextK.Y)) == 2) {
 				return true;
+			}
 		}
 		return false;
 	}
@@ -127,10 +158,14 @@ struct Board {
 					int newY = K.Y + My[(direction * 2) + i];
 					if (isValidMove(newX, newY)) { //Is valid Move should return cost of the move
 						Position newP{ newX, newY };
-						int costOfMove = COST[boardData[newY][newX]];
+
+						if (canTeleport(newP))
+							std::cout << "Teleporting \n";
+						
+						int costOfMove = COST[boardData[newP.Y][newP.X]];
 						//If A* algo...the cost also includes the distance from END
 						if (AStar)
-							costOfMove += std::abs(newX - static_cast<int>(getEnd().X)) + std::abs(newY - static_cast<int>(getEnd().Y));
+							costOfMove += std::abs(static_cast<int>(newP.X) - static_cast<int>(getEnd().X)) + std::abs(static_cast<int>(newP.Y) - static_cast<int>(getEnd().Y));
 						PossibleMoves.push_back({ costOfMove , newP });
 					}
 				}

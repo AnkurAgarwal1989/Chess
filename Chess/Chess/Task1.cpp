@@ -98,11 +98,15 @@ bool validateSequence(Board<std::string>& B) {
 	int nextK_x, nextK_y;
 	
 	Position K_prev{B.getStart()};
+	if (B.canTeleport(K_prev))
+		std::cout << "Teleporting /n";
 	while (1) {
 		std::cin >> nextK_x >> nextK_y;
 		
 		if (B.isValidKnightMove(K_prev, nextK_x, nextK_y)) {
 			Position K_next{ nextK_x, nextK_y };
+			if (B.canTeleport(K_next))
+				std::cout << "Teleporting /n";
 			//Since we have made sure the points are valid, we can static cast to unsigned int
 			K_prev = K_next;
 			std::cout << "Knight moved to location " << K_next.X << ", " << K_next.Y << "\n";
@@ -122,7 +126,8 @@ bool validateSequence(Board<std::string>& B) {
 int main(int argc, char* argv[]) {
 
 	task2();
-	/*if (argc < 2) {
+	/*
+	if (argc < 2) {
 		printHelp();
 	}
 
@@ -143,6 +148,7 @@ int main(int argc, char* argv[]) {
 		ret &= KB.setEnd(End_X, End_X);
 		if (ret) {
 			std::cout << "Initial State of Knight Board \n";
+			KB.addTeleportPoints(4, 3, 5, 5);
 			KB.printBoardState();
 			validateSequence(KB);
 		}
@@ -151,8 +157,8 @@ int main(int argc, char* argv[]) {
 			exit(1);
 		}
 	}
-
-	std::cin.get();*/
+	*/
+	std::cin.get();
 
 
 	return 1;

@@ -35,7 +35,10 @@ bool sortMoves(std::pair<int, Position>& lhs, std::pair<int, Position>& rhs) {
 	return lhs.first < rhs.first;
 };
 
-bool getPath(Board<std::string>& B, BoardData<Move>& visited, Position K, int moves, bool A_Star)
+//Recursive function to search for the best path to the End Goal.
+//if useDistanceHeuristic is false, only the cost of the node is considered.
+//If A* is used, the cost also includes the distance from the End goal.
+bool getPath(Board<std::string>& B, BoardData<Move>& visited, Position K, int moves, bool useDistanceHeuristic)
 {
 	//Return TRUE condition for recursion
 	//If we have reached the Goal, return true;
@@ -48,27 +51,27 @@ bool getPath(Board<std::string>& B, BoardData<Move>& visited, Position K, int mo
 	Moves possMoves;
 	//at position K.
 	//Get a list of open positions
-	B.getValidMoves(K, possMoves, A_Star);
+	B.getValidMoves(K, possMoves, useDistanceHeuristic);
 
 	if (possMoves.size() == 0) //No valid moves exist...backtrack
 		return false;
 
-	//for (auto move : possMoves) {
-	//	std::cout << move.second.X << " " << move.second.Y << "\n";
-	//}
+	//Sort moves by cost of Node.
 	std::sort(possMoves.begin(), possMoves.end(), sortMoves);
+
 	for (auto move : possMoves) {
 		std::vector<Position> path;
 		//std::cout << move.second.X <<" " << move.second.Y <<"\n";
 		//If a node has been visited or if the previous cost of reaching the node is less than current cost + node cost...go to next node
-		
-		if (visited[move.second.Y][move.second.X].first > -1 && visited[move.second.Y][move.second.X].first <= moves + move.first) {
+		int costOfNextNode = 0;
+		costOfNextNode = B.COST[B.boardData[move.second.Y][move.second.X]];
+		if (visited[move.second.Y][move.second.X].first > -1 && visited[move.second.Y][move.second.X].first <= moves + costOfNextNode){
 			continue;
 		}
 		else {
 			visited[move.second.Y][move.second.X].first = moves + 1;
 			visited[move.second.Y][move.second.X].second = K;
-			getPath(B, visited, move.second, moves + 1, A_Star);
+			getPath(B, visited, move.second, moves + 1, useDistanceHeuristic);
 			}
 	}
 	return false;
@@ -109,12 +112,12 @@ void solve(Board<std::string>& B, bool Astar) {
 }
 
 void task2() {
-	size_t BOARD_HEIGHT = 20;
-	size_t BOARD_WIDTH = 20;
+	size_t BOARD_HEIGHT = 8;
+	size_t BOARD_WIDTH = 8;
 	size_t Start_X = 2;
 	size_t Start_Y = 2;
-	size_t End_X = 18;
-	size_t End_Y = 18;
+	size_t End_X = 7;
+	size_t End_Y = 7;
 
 	Board<std::string> KB{BOARD_HEIGHT, BOARD_WIDTH};
 	bool ret = KB.setStart(Start_X, Start_Y);
@@ -142,10 +145,11 @@ void task2() {
 	KB.setPoint(4, 5, "B");
 	KB.setPoint(5, 4, "B");
 	KB.setPoint(4, 6, "B");
+	KB.addTeleportPoints(4, 3, 5, 6);
 	KB.printBoardState();
 	std::cout << "\n";
 	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-	solve(KB, true); //True for Astar algo
+	solve(KB, true); //True for using distance heuristic
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
