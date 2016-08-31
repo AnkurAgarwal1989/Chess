@@ -4,46 +4,7 @@
 #include<utility>
 #include<map>
 #include<array>
-#include<math.h>
-
-/***************************************************************/
-//Type to contain data on board.
-template <typename T>
-using BoardData = std::vector< std::vector<T> >;
-
-template <typename T>
-void printBoardData(BoardData<T>& data) {
-	for (auto y_iter : data) {
-		for (auto x_iter : y_iter) {
-			std::cout << x_iter << " ";
-		}
-		std::cout << "\n";
-	}
-}
-/***************************************************************/
-
-
-/***************************************************************/
-//Struct to handle position values
-//This Position should only hold values that can fit on the board
-struct Position {
-	unsigned int X;
-	unsigned int Y;
-
-	Position(unsigned int x, unsigned int y) :X(x), Y(y) {};
-	Position(int x, int y) :X(x), Y(y) {};
-};
-/***************************************************************/
-
-
-//Alias to hold Cost(first) and New Position (second) 
-//We will sort on first for smallest cost.
-using Moves = std::vector< std::pair<int, Position>>;
-
-//Function to sort on the first value of the PossibleMoves
-/*bool sortMoves(std::pair<int, Position>& lhs, std::pair<int, Position>& rhs) {
-	return lhs.first < rhs.first;
-};*/
+#include"BoardUtility.h"
 
 
 template <typename T>
@@ -130,9 +91,11 @@ struct Board {
 	//Function to check if move is a valid Knight Move
 	//Function will take 2 valid positions
 	bool validKnightMove(const Position prevK, const int nextK_x, const int nextK_y) {
-		if (validMove(nextK_x, const int nextK_y))
+		if (validMove(nextK_x, nextK_y)) {
+			Position nextK{ nextK_x, nextK_y };
 			if (std::abs(static_cast<int>(prevK.X) - static_cast<int>(nextK.X)) * std::abs(static_cast<int>(prevK.Y) - static_cast<int>(nextK.Y)) == 2)
 				return true;
+		}
 		return false;
 	}
 

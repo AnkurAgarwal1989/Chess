@@ -114,7 +114,6 @@ bool validateSequence(Board<std::string>& B) {
 			std::cin.clear();
 			std::cin.ignore(INT_MAX, '\n');
 		}
-		}
 	}
 }
 
