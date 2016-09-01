@@ -128,7 +128,7 @@ bool validateSequence(Board<std::string>& B) {
 
 int main(int argc, char* argv[]) {
 
-	task5();
+	//task5();
 	task2();
 	/*
 	if (argc < 2) {

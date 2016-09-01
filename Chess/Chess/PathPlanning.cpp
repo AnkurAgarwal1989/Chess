@@ -24,11 +24,11 @@ bool findPathAhead(Board<std::string>& B, BoardData<Move>& visited, Position K, 
 		return true;
 	}
 	
-	//printBoardData(visited);
+	printBoardData(visited);
 	Moves possMoves;
 	//at position K.
 	//Get a list of open positions
-	B.getValidMoves(K, possMoves, 1); //A*
+	B.getValidMoves(K, possMoves, useDistanceHeuristic); //A*
 
 	if (possMoves.size() == 0) //No valid moves exist...backtrack
 		return false;
@@ -48,34 +48,39 @@ bool findPathAhead(Board<std::string>& B, BoardData<Move>& visited, Position K, 
 		else {
 			visited[move.second.Y][move.second.X].first = moveCntr + 1;
 			visited[move.second.Y][move.second.X].second = K;
-			findPathAhead(B, visited, move.second, moveCntr + 1, useDistanceHeuristic);
+			//find a path from this location. Don't return here.
+			if (findPathAhead(B, visited, move.second, moveCntr + 1, useDistanceHeuristic) == true)
+				return true;
 			}
 	}
 	return false;
 }
 
-void solveForPath(Board<std::string>& B, bool useDistanceHeuristic) {
-	BoardData<Move> visited = BoardData<Move>{ B.height , std::vector<Move>{B.width, Move(-1, Position{0,0}) } };
-	//BoardData<Move> visited = BoardData<Move>{ B.height , std::vector<Move>{B.width, Move(-1, Position{0,0}) } };
-	int moves = 0;
-	visited[B.getStart().Y][B.getStart().X].first = 0;
-	
-	std::vector<Position> bestPath;
-	int pathCost = 0;
-	findPathAhead(B, visited, B.getStart(), moves, useDistanceHeuristic);
-	Position K = B.getEnd();
-	pathCost = visited[K.Y][K.X].first;
+//Function to initiate Best Path search.
+//Returns true if found a path
+//Returns false if no path found
+bool solveForBestPath(Board<std::string>& B, std::vector<Position>& bestPath, bool useDistanceHeuristic) {
 
-	//If the visited cell for END is marked, it means a path was found
-	if (pathCost > -1){
-		B.getPathStart2End(visited, bestPath);
+	//Initialise the visited data with -1 cost and out of bounds positions
+	BoardData<Move> visited = BoardData<Move>{ B.height , std::vector<Move>{B.width, Move(-1, Position{ B.width, B.height }) } };
+
+	int moveCntr = 0;
+
+	//Cost of Start is 0
+	visited[B.getStart().Y][B.getStart().X].first = 0;
+
+	if (findPathAhead(B, visited, B.getStart(), moveCntr, useDistanceHeuristic)) {
+		int pathCost = 0;
+		pathCost = B.getPathStart2End(visited, bestPath);
 		//Path contains Start and End, so number of moves = size - 1
-		std::cout << "\nPath found with length " << bestPath.size() - 1 <<" and cost " <<pathCost << "\nStart\n";
+		std::cout << "\nPath found with length " << bestPath.size() - 1 << " and cost " << pathCost << "\nStart\n";
 		printPath(bestPath);
 		std::cout << "\nEnd\n";
+		return true;
 	}
 	else {
 		std::cout << "No path found \n";
+		return false;
 	}
 }
 
@@ -117,7 +122,8 @@ void task2() {
 	KB.printBoardState();
 	std::cout << "\n";
 	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-	solveForPath(KB, true); //True for using distance heuristic
+	std::vector<Position> bestPath;
+	solveForBestPath(KB, bestPath, true); //True for using distance heuristic
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();

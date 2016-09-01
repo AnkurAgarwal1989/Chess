@@ -144,20 +144,23 @@ struct Board {
 
 	//Function to get the Path from the Visited data struct
 	//Needs a reference to a vector of Positions
-	void getPathStart2End(BoardData<Move>& visited, std::vector<Position>& bestPath) {
+	int getPathStart2End(BoardData<Move>& visited, std::vector<Position>& bestPath) {
 		//Retrieve the best path for future use
 		bestPath.clear();
-		Position p{ getEnd() };
-		bestPath.push_back(p);
-		while (p != getStart()) {
-			Position nextP = visited[p.Y][p.X].second;
-			canTeleport(nextP);
-			bestPath.push_back(nextP);
-			p = nextP;
+		Position curr{ getEnd() }, visitedFrom{ getEnd() };
+		bestPath.push_back(curr);
+		int pathCost = 0;
+		pathCost = visited[curr.Y][curr.X].first;
+		while (visitedFrom != getStart()) {					//While we reach the beginning cell
+			visitedFrom = visited[curr.Y][curr.X].second;	//How did we land at this cell
+			curr = visitedFrom;								//Make the landing cell as new focus location
+			canTeleport(visitedFrom);						//Did we teleport to this location? If yes, we need to get the teleport origin			
+			bestPath.push_back(visitedFrom);				//Append landing location to path. if we teleported, the path should be the teleport origin
 		}
 
 		//Needs to be reversed because we are going from End to Start. We want path from S to E.
 		std::reverse(bestPath.begin(), bestPath.end());
+		return pathCost;
 	}
 
 	//Function to get a vector of valid moves

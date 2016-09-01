@@ -5,28 +5,27 @@
 #include<iostream>
 #include<chrono>
 
-void saveBestPath(Board<std::string>& B, BoardData<Move>& visited, Position K, std::vector<Position>& bestPath) {
-	//Retrieve the best path for future use
-	bestPath.clear();
-	Position p{ K };
-	bestPath.push_back(p);
-	while (p != B.getStart()) {
-		Position nextP = visited[p.Y][p.X].second;
-		bestPath.push_back(nextP);
-		p = nextP;
-	}
-	std::reverse(bestPath.begin(), bestPath.end());
-}
-
 //Recursive function to search for the best path to the End Goal.
 bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Position K, std::vector<Position>& bestPath, int moveCntr, bool useDistanceHeuristic, int& bestMoves, unsigned int& watchdog)
 {
-	//Return TRUE condition for recursion
+	//Return conditions for recursion
 	//If we have reached the Goal, return true;
-	//printBoardData(visited);
 	if (K == B.getEnd()) {
+
 		//Everytime we reach the goal, increment watchdog
 		++watchdog;
+
+		if (moveCntr > bestMoves) { //We are doing better than previous times
+			watchdog = 0;			//reset watchdog counter
+			bestMoves = moveCntr;
+			
+			B.getPathStart2End(visited, bestPath);
+			//std::cout << moveCntr << "\n";
+
+			//Store the current best path. This will be updated next time we see a better path
+			visited[K.Y][K.X].first = -1; //Unvisit the node and try from other nodes.
+			return false;
+		}
 
 		if (moveCntr == (B.height*B.width - 1)) { //Maximum number of moves possible for a board reached
 			bestMoves = moveCntr;
@@ -34,47 +33,33 @@ bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Posit
 			return true;
 		}
 
-		if (moveCntr > bestMoves) { //We are doing better than previous times
-			//reset watchdog counter
-			watchdog = 0;
-			bestMoves = moveCntr;
-			//saveBestPath(B, visited, K, bestPath);
-			B.getPathStart2End(visited, bestPath);
-			std::cout << moveCntr << "\n";
-			//Retrieve the best path for future use
-			visited[K.Y][K.X].first = -1; //Unvisit and try from other nodes
-			return false;
-		}
-
-		if (watchdog > (B.height * B.width)) {
-		std::cout << "No change in " << watchdog << " iterations. Best value possibly reached \n";
+		if (watchdog > (B.height * B.width)) { //It has taken too long and we have not found a better path...exit
+			std::cout << "No change in " << watchdog << " iterations. Best value possibly reached. \n";
 			return true;
 		}
-		else{					//We are doing worse than previous attempts
-			visited[K.Y][K.X].first = -1;  //MArk the Goal non visited and go back
+		else{							   //We are doing worse than previous attempts
+			visited[K.Y][K.X].first = -1;  //Mark the Goal non visited and go back
 			return false;
 		}
 	}
 		
-	//printBoardData(visited);
+	//Get a list of open positions from current position.
 	Moves possMoves;
-	//at position K.
-	//Get a list of open positions
 	B.getValidMoves(K, possMoves, useDistanceHeuristic);
 
 	if (possMoves.size() == 0) //No valid moves exist
 		return false;
 
-	//Sort moves by cost of Node.
+	//Sort moves by cost of Node. Highest cost nodes refer to 
+	//nodes with more distance from End goal. we want those.
+	//Most important part of the search.
+	//Early on, we want to move as far as possible from the End goal.
+	//Then we want to circle around (sort of) the End goal till we finally reach.
 	std::sort(possMoves.begin(), possMoves.end(), sortMovesDesc);
 	
 	for (auto move : possMoves) {
 		std::vector<Position> path;
-		//std::cout << move.second.X <<" " << move.second.Y <<"\n";
-		//If a node has been visited or if the previous cost of reaching the node is less than current cost + node cost...go to next node
-		int costOfNextNode = 0;
-		//costOfNextNode = B.COST[B.boardData[move.second.Y][move.second.X]];
-
+		
 		//If this node has been visited, we can not go here
 		if (visited[move.second.Y][move.second.X].first > -1) {
 			continue;
@@ -82,6 +67,8 @@ bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Posit
 		else {
 			visited[move.second.Y][move.second.X].first = moveCntr + 1;
 			visited[move.second.Y][move.second.X].second = K;
+
+			//If End was reached either in max possible moves or watchdog counter was trigerred..return
 			if (findLongestPathAhead(B, visited, move.second, bestPath, moveCntr + 1, useDistanceHeuristic, bestMoves, watchdog)) {
 				return true;
 			}
@@ -93,28 +80,34 @@ bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Posit
 	return false;
 }
 
-void solveForLongestPath(Board<std::string>& B, bool useDistanceHeuristic) {
+//Function to initiate Longest Path search.
+//Returns true if found a path
+//Returns false if no path found
+bool solveForLongestPath(Board<std::string>& B, std::vector<Position>& bestPath, bool useDistanceHeuristic) {
+
+	//Initialise the visited data with -1 cost and out of bounds positions
 	BoardData<Move> visited = BoardData<Move>{ B.height, std::vector<Move>{B.width, Move(-1, Position{ B.width, B.height }) } };
-	std::vector<Position> bestPath;
-	
+
 	int bestMoves = 0;
 	unsigned int watchdog = 0;
 	int moveCntr = 0;
+
+	//Cost of Start is 0
 	visited[B.getStart().Y][B.getStart().X].first = 0;
 
-	//printBoardData(visited);
-
 	findLongestPathAhead(B, visited, B.getStart(), bestPath, moveCntr, useDistanceHeuristic, bestMoves, watchdog);
-	
+
 	if (bestPath.size() > 0) {
 		//Path includes Start and End, so path length = size - 1
 		std::cout << "\nPath found with length " << bestPath.size() - 1 << "\nStart\n";
 		printPath(bestPath);
 		std::cout << "\nEnd\n";
+		return true;
 	}
-	
+
 	else {
 		std::cout << "No path found \n";
+		return false;
 	}
 }
 
@@ -146,7 +139,9 @@ void task5() {
 	KB.printBoardState();
 	std::cout << "\n";
 	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-	solveForLongestPath(KB, true); //True for using distance heuristic
+	std::vector<Position> longestPath;
+
+	solveForLongestPath(KB, longestPath, true); //True for using distance heuristic
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
