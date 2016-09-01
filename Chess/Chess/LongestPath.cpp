@@ -17,11 +17,16 @@ bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Posit
 	//If we have reached the Goal, return true;
 
 	if (K == B.getEnd()) {
-		if (moves > maxMoves || moves == (B.height*B.width - 1)) { //Can't do more than this
+		if (moves == (B.height*B.width - 1)) { //Max moves reached
 			maxMoves = moves;
 			return true;
 		}
-		else if(moves <= maxMoves){
+
+		if (moves > maxMoves) { //Can't do more than this
+			maxMoves = moves;
+			return true;
+		}
+		else{
 			visited[K.Y][K.X].first = -1;  //MArk the Goal non visited and go back
 			return false;
 		}
@@ -79,20 +84,26 @@ void solveForLongestPath(Board<std::string>& B, bool useDistanceHeuristic) {
 	//BoardData<Move> visited = BoardData<Move>{ B.height , std::vector<Move>{B.width, Move(-1, Position{0,0}) } };
 
 	std::vector<Position> bestPath;
-	int pathCost = 0;
+	
 	int maxMoves = 0;
 	int bestMoves = -1;
 	int moves = 0;
-	while (maxMoves > bestMoves && maxMoves < (B.height * B.width)) {
+	while (maxMoves > bestMoves) {
 		moves = 0;
 		visited = BoardData<Move>{ B.height , std::vector<Move>{B.width, Move(-1, Position{ B.width, B.height }) } };
 		visited[B.getStart().Y][B.getStart().X].first = 0;
 		bestMoves = maxMoves;
 		std::cout << "Best: " << bestMoves;
 		findLongestPathAhead(B, visited, B.getStart(), moves, useDistanceHeuristic, maxMoves);
+		if (maxMoves == (B.height * B.width) - 1) {
+			bestMoves = maxMoves;
+			break;
+		}
 	}
 	printBoardData(visited);
 	Position K = B.getEnd();
+
+	int pathCost = 0;
 	pathCost = visited[K.Y][K.X].first;
 	//If the visited cell for END is marked, it means a path was found
 	if (pathCost > -1) {
