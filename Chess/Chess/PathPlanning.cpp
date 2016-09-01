@@ -38,7 +38,7 @@ bool sortMoves(std::pair<int, Position>& lhs, std::pair<int, Position>& rhs) {
 //Recursive function to search for the best path to the End Goal.
 //if useDistanceHeuristic is false, only the cost of the node is considered.
 //If A* is used, the cost also includes the distance from the End goal.
-bool findPathAhead(Board<std::string>& B, BoardData<Move>& visited, Position K, int moves, bool useDistanceHeuristic)
+bool findPathAhead(Board<std::string>& B, BoardData<Move>& visited, Position K, int moveCntr, bool useDistanceHeuristic)
 {
 	//Return TRUE condition for recursion
 	//If we have reached the Goal, return true;
@@ -65,13 +65,13 @@ bool findPathAhead(Board<std::string>& B, BoardData<Move>& visited, Position K, 
 		//If a node has been visited or if the previous cost of reaching the node is less than current cost + node cost...go to next node
 		int costOfNextNode = 0;
 		costOfNextNode = B.COST[B.boardData[move.second.Y][move.second.X]];
-		if (visited[move.second.Y][move.second.X].first > -1 && visited[move.second.Y][move.second.X].first <= moves + costOfNextNode){
+		if (visited[move.second.Y][move.second.X].first > -1 && visited[move.second.Y][move.second.X].first <= moveCntr + costOfNextNode){
 			continue;
 		}
 		else {
-			visited[move.second.Y][move.second.X].first = moves + 1;
+			visited[move.second.Y][move.second.X].first = moveCntr + 1;
 			visited[move.second.Y][move.second.X].second = K;
-			findPathAhead(B, visited, move.second, moves + 1, useDistanceHeuristic);
+			findPathAhead(B, visited, move.second, moveCntr + 1, useDistanceHeuristic);
 			}
 	}
 	return false;
