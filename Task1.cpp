@@ -10,7 +10,6 @@
 
 
 void task2();
-void task5();
 
 int test1() {
 	unsigned int BOARD_HEIGHT = 7;  // Number of ROWS on baord
@@ -128,7 +127,6 @@ bool validateSequence(Board<std::string>& B) {
 
 int main(int argc, char* argv[]) {
 
-	task5();
 	task2();
 	/*
 	if (argc < 2) {
