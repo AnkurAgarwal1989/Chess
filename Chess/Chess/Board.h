@@ -147,7 +147,9 @@ struct Board {
 	//If there is a wall in any of the 4 directions we can not move to those
 	//If a direction is open for moving (no wall), we then check if the point to move to is valid
 	//Updates the list of possible moves from the current knigth position
-	void getValidMoves(const Position K, Moves& possibleMoves, bool AStar) { 
+	// int costHeuristic: 0 is naiive (no extra cost), 1 is A*(manhattan distance from end), 
+	// 2 is opposite of A* (used to find longest path) 
+	void getValidMoves(const Position K, Moves& possibleMoves, int costHeuristic) { 
 		for (size_t direction = 0; direction < 4; ++direction) {
 			if (isBarrierInPath(K, Dx[direction], Dy[direction])) //If we hit the barrier in this direction, move on to next
 				continue;
@@ -164,9 +166,10 @@ struct Board {
 						
 						int costOfMove = COST[boardData[newP.Y][newP.X]];
 						//If A* algo...the cost also includes the distance from END
-						if (AStar)
+						if (costHeuristic == 1)
 							costOfMove += std::abs(static_cast<int>(newP.X) - static_cast<int>(getEnd().X)) + std::abs(static_cast<int>(newP.Y) - static_cast<int>(getEnd().Y));
-					
+						if (costHeuristic == 2)
+							costOfMove -= std::abs(static_cast<int>(newP.X) - static_cast<int>(getEnd().X)) + std::abs(static_cast<int>(newP.Y) - static_cast<int>(getEnd().Y));
 						possibleMoves.push_back({ costOfMove , newP });
 					}
 				}

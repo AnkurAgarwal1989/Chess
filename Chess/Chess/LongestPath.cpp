@@ -10,23 +10,41 @@ bool sortMovesNot(std::pair<int, Position>& lhs, std::pair<int, Position>& rhs) 
 	return lhs.first < rhs.first;
 };
 
+void saveBestPath(Board<std::string>& B, BoardData<Move>& visited, Position K, std::vector<Position>& bestPath) {
+	//Retrieve the best path for future use
+	bestPath.clear();
+	Position p{ K };
+	bestPath.push_back(p);
+	while (p != B.getStart()) {
+		Position nextP = visited[p.Y][p.X].second;
+		bestPath.push_back(nextP);
+		p = nextP;
+	}
+	std::reverse(bestPath.begin(), bestPath.end());
+}
+
 //Recursive function to search for the best path to the End Goal.
-bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Position K, int moves, bool useDistanceHeuristic, int& maxMoves)
+bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Position K, std::vector<Position>& bestPath, int moves, bool useDistanceHeuristic, int& maxMoves)
 {
 	//Return TRUE condition for recursion
 	//If we have reached the Goal, return true;
-
+	//printBoardData(visited);
 	if (K == B.getEnd()) {
-		if (moves == (B.height*B.width - 1)) { //Max moves reached
+		if (moves == (B.height*B.width - 1)) { //Maximum number of moves possible for a board reached
 			maxMoves = moves;
+			saveBestPath(B, visited, K, bestPath);
 			return true;
 		}
 
-		if (moves > maxMoves) { //Can't do more than this
+		if (moves > maxMoves) { //We are doing better than previous times
 			maxMoves = moves;
-			return true;
+			saveBestPath(B, visited, K, bestPath);
+			std::cout << moves << "\n";
+			//Retrieve the best path for future use
+			visited[K.Y][K.X].first = -1; //Unvisit and try from other nodes
+			return false;
 		}
-		else{
+		else{					//We are doing worse than previous attempts
 			visited[K.Y][K.X].first = -1;  //MArk the Goal non visited and go back
 			return false;
 		}
@@ -36,11 +54,13 @@ bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Posit
 	Moves possMoves;
 	//at position K.
 	//Get a list of open positions
-	B.getValidMoves(K, possMoves, useDistanceHeuristic);
+	B.getValidMoves(K, possMoves, 2);
 
-	if (possMoves.size() == 0) //No valid moves exist...backtrack
+	if (possMoves.size() == 0) //No valid moves exist
 		return false;
-	for (auto& move : possMoves) {
+
+	/*for (auto& move : possMoves) {
+		//std::cout << move.first << "\n";
 		//Find moves which are possible after the successor
 		Moves futureMoves = Moves{};
 		B.getValidMoves(move.second, futureMoves, useDistanceHeuristic);
@@ -49,11 +69,11 @@ bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Posit
 			if (visited[fM.second.Y][fM.second.X].first > -1)
 				--move.first;
 		}
-	}
+	}*/
 
 	//Sort moves by cost of Node.
 	std::sort(possMoves.begin(), possMoves.end(), sortMovesNot);
-
+	
 	for (auto move : possMoves) {
 		std::vector<Position> path;
 		//std::cout << move.second.X <<" " << move.second.Y <<"\n";
@@ -68,7 +88,7 @@ bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Posit
 		else {
 			visited[move.second.Y][move.second.X].first = moves + 1;
 			visited[move.second.Y][move.second.X].second = K;
-			if (findLongestPathAhead(B, visited, move.second, moves + 1, useDistanceHeuristic, maxMoves)) {
+			if (findLongestPathAhead(B, visited, move.second, bestPath, moves + 1, useDistanceHeuristic, maxMoves)) {
 				return true;
 			}
 			else {
@@ -88,40 +108,22 @@ void solveForLongestPath(Board<std::string>& B, bool useDistanceHeuristic) {
 	int maxMoves = 0;
 	int bestMoves = -1;
 	int moves = 0;
-	while (maxMoves > bestMoves) {
-		moves = 0;
-		visited = BoardData<Move>{ B.height , std::vector<Move>{B.width, Move(-1, Position{ B.width, B.height }) } };
-		visited[B.getStart().Y][B.getStart().X].first = 0;
-		bestMoves = maxMoves;
-		std::cout << "Best: " << bestMoves;
-		findLongestPathAhead(B, visited, B.getStart(), moves, useDistanceHeuristic, maxMoves);
-		if (maxMoves == (B.height * B.width) - 1) {
-			bestMoves = maxMoves;
-			break;
-		}
-	}
+	visited = BoardData<Move>{ B.height , std::vector<Move>{B.width, Move(-1, Position{ B.width, B.height }) } };
+	visited[B.getStart().Y][B.getStart().X].first = 0;
+	findLongestPathAhead(B, visited, B.getStart(), bestPath, moves, useDistanceHeuristic, maxMoves);
 	printBoardData(visited);
-	Position K = B.getEnd();
 
-	int pathCost = 0;
-	pathCost = visited[K.Y][K.X].first;
-	//If the visited cell for END is marked, it means a path was found
-	if (pathCost > -1) {
-		//If a valid path was found..we can take the path from the 'visited' datastructure;
-
-		bestPath.push_back(K);
-		while (K != B.getStart()) {
-			Position P = visited[K.Y][K.X].second;
-			bestPath.push_back(P);
-			K = P;
-		}
-		std::cout << "\nPath found with length " << bestPath.size() - 1 << " and cost " << pathCost << "\nStart\n";
-		std::reverse(bestPath.begin(), bestPath.end());
-
+	//printBoardData(visited);
+	
+	if (bestPath.size() > 0) {
+		std::cout << "\nPath found with length " << bestPath.size() << "\nStart\n";
+		
 		printPath(bestPath);
+
 		std::cout << "\nEnd\n";
 		printBoardData(visited);
 	}
+	
 	else {
 		std::cout << "No path found \n";
 	}
@@ -134,7 +136,7 @@ void task5() {
 	size_t BOARD_WIDTH = 32;
 	size_t Start_X = 0;
 	size_t Start_Y = 0;
-	size_t End_X = 2;
+	size_t End_X = 1;
 	size_t End_Y = 1;
 
 	Board<std::string> KB{ BOARD_HEIGHT, BOARD_WIDTH };

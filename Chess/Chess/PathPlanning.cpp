@@ -51,7 +51,7 @@ bool findPathAhead(Board<std::string>& B, BoardData<Move>& visited, Position K, 
 	Moves possMoves;
 	//at position K.
 	//Get a list of open positions
-	B.getValidMoves(K, possMoves, useDistanceHeuristic);
+	B.getValidMoves(K, possMoves, 1); //A*
 
 	if (possMoves.size() == 0) //No valid moves exist...backtrack
 		return false;
