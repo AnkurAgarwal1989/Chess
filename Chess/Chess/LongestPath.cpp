@@ -5,11 +5,6 @@
 #include<iostream>
 #include<chrono>
 
-//Function to sort on the first value of the PossibleMoves
-bool sortMovesNot(std::pair<int, Position>& lhs, std::pair<int, Position>& rhs) {
-	return lhs.first < rhs.first;
-};
-
 void saveBestPath(Board<std::string>& B, BoardData<Move>& visited, Position K, std::vector<Position>& bestPath) {
 	//Retrieve the best path for future use
 	bestPath.clear();
@@ -35,7 +30,7 @@ bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Posit
 
 		if (moveCntr == (B.height*B.width - 1)) { //Maximum number of moves possible for a board reached
 			bestMoves = moveCntr;
-			saveBestPath(B, visited, K, bestPath);
+			B.getPathStart2End(visited, bestPath);
 			return true;
 		}
 
@@ -43,15 +38,16 @@ bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Posit
 			//reset watchdog counter
 			watchdog = 0;
 			bestMoves = moveCntr;
-			saveBestPath(B, visited, K, bestPath);
+			//saveBestPath(B, visited, K, bestPath);
+			B.getPathStart2End(visited, bestPath);
 			std::cout << moveCntr << "\n";
 			//Retrieve the best path for future use
 			visited[K.Y][K.X].first = -1; //Unvisit and try from other nodes
 			return false;
 		}
 
-		if (watchdog > (B.height * B.width)*(B.height * B.width)) {
-		std::cout << "No change in " << watchdog << " iterations. Best value probably reached \n";
+		if (watchdog > (B.height * B.width)) {
+		std::cout << "No change in " << watchdog << " iterations. Best value possibly reached \n";
 			return true;
 		}
 		else{					//We are doing worse than previous attempts
@@ -64,13 +60,13 @@ bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Posit
 	Moves possMoves;
 	//at position K.
 	//Get a list of open positions
-	B.getValidMoves(K, possMoves, 2);
+	B.getValidMoves(K, possMoves, useDistanceHeuristic);
 
 	if (possMoves.size() == 0) //No valid moves exist
 		return false;
 
 	//Sort moves by cost of Node.
-	std::sort(possMoves.begin(), possMoves.end(), sortMovesNot);
+	std::sort(possMoves.begin(), possMoves.end(), sortMovesDesc);
 	
 	for (auto move : possMoves) {
 		std::vector<Position> path;
@@ -111,7 +107,8 @@ void solveForLongestPath(Board<std::string>& B, bool useDistanceHeuristic) {
 	findLongestPathAhead(B, visited, B.getStart(), bestPath, moveCntr, useDistanceHeuristic, bestMoves, watchdog);
 	
 	if (bestPath.size() > 0) {
-		std::cout << "\nPath found with length " << bestPath.size() << "\nStart\n";
+		//Path includes Start and End, so path length = size - 1
+		std::cout << "\nPath found with length " << bestPath.size() - 1 << "\nStart\n";
 		printPath(bestPath);
 		std::cout << "\nEnd\n";
 	}
@@ -149,7 +146,7 @@ void task5() {
 	KB.printBoardState();
 	std::cout << "\n";
 	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-	solveForLongestPath(KB, false); //True for using distance heuristic
+	solveForLongestPath(KB, true); //True for using distance heuristic
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();

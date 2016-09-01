@@ -48,9 +48,13 @@ void printBoardData(BoardData<T>& data) {
 	}
 }
 
-void printPath(const std::vector<Position>& P);
-
 template <>
 void printBoardData<Move>(BoardData<Move>& data);
+
+void printPath(const std::vector<Position>& P);
+
+bool sortMoves(std::pair<int, Position>& lhs, std::pair<int, Position>& rhs);
+
+bool sortMovesDesc(std::pair<int, Position>& lhs, std::pair<int, Position>& rhs);
 /***************************************************************/
 

@@ -5,35 +5,12 @@
 #include<iostream>
 #include<chrono>
 
-//Tempalte spec to print the Visited data
-template <>
-void printBoardData<Move>(BoardData<Move>& data) {
-	for (auto y_iter : data) {
-		for (auto x_iter : y_iter) {
-			std::cout << x_iter.first << " ";
-		}
-		std::cout << "\n";
-	}
-
-	for (auto y_iter : data) {
-		for (auto x_iter : y_iter) {
-			std::cout << "(" << x_iter.second.X << "," << x_iter.second.Y << ")";
-		}
-		std::cout << "\n";
-	}
-}
-
 void printPath(const std::vector<Position>& P)
 {
 	for (auto p : P) {
 		std::cout << "(" << p.X << ", " << p.Y << ")\n";
 	}
 }
-
-//Function to sort on the first value of the PossibleMoves
-bool sortMoves(std::pair<int, Position>& lhs, std::pair<int, Position>& rhs) {
-	return lhs.first < rhs.first;
-};
 
 //Recursive function to search for the best path to the End Goal.
 //if useDistanceHeuristic is false, only the cost of the node is considered.
@@ -88,19 +65,12 @@ void solveForPath(Board<std::string>& B, bool useDistanceHeuristic) {
 	findPathAhead(B, visited, B.getStart(), moves, useDistanceHeuristic);
 	Position K = B.getEnd();
 	pathCost = visited[K.Y][K.X].first;
+
 	//If the visited cell for END is marked, it means a path was found
 	if (pathCost > -1){
-		//If a valid path was found..we can take the path from the 'visited' datastructure;
-		
-		bestPath.push_back(K);
-		while (K != B.getStart()) {
-			Position P = visited[K.Y][K.X].second;
-			bestPath.push_back(P);
-			K = P;
-		}
+		B.getPathStart2End(visited, bestPath);
+		//Path contains Start and End, so number of moves = size - 1
 		std::cout << "\nPath found with length " << bestPath.size() - 1 <<" and cost " <<pathCost << "\nStart\n";
-		std::reverse(bestPath.begin(), bestPath.end());
-
 		printPath(bestPath);
 		std::cout << "\nEnd\n";
 	}

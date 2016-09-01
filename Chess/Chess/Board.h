@@ -142,6 +142,24 @@ struct Board {
 		return true;
 	}
 
+	//Function to get the Path from the Visited data struct
+	//Needs a reference to a vector of Positions
+	void getPathStart2End(BoardData<Move>& visited, std::vector<Position>& bestPath) {
+		//Retrieve the best path for future use
+		bestPath.clear();
+		Position p{ getEnd() };
+		bestPath.push_back(p);
+		while (p != getStart()) {
+			Position nextP = visited[p.Y][p.X].second;
+			canTeleport(nextP);
+			bestPath.push_back(nextP);
+			p = nextP;
+		}
+
+		//Needs to be reversed because we are going from End to Start. We want path from S to E.
+		std::reverse(bestPath.begin(), bestPath.end());
+	}
+
 	//Function to get a vector of valid moves
 	//The knight can move in 4 directions and can move to 8 points
 	//If there is a wall in any of the 4 directions we can not move to those
@@ -149,7 +167,7 @@ struct Board {
 	//Updates the list of possible moves from the current knigth position
 	// int costHeuristic: 0 is naiive (no extra cost), 1 is A*(manhattan distance from end), 
 	// 2 is opposite of A* (used to find longest path) 
-	void getValidMoves(const Position K, Moves& possibleMoves, int costHeuristic) { 
+	void getValidMoves(const Position K, Moves& possibleMoves, bool useDistanceHeuristic) { 
 		for (size_t direction = 0; direction < 4; ++direction) {
 			if (isBarrierInPath(K, Dx[direction], Dy[direction])) //If we hit the barrier in this direction, move on to next
 				continue;
@@ -166,10 +184,8 @@ struct Board {
 						
 						int costOfMove = COST[boardData[newP.Y][newP.X]];
 						//If A* algo...the cost also includes the distance from END
-						if (costHeuristic == 1)
+						if (useDistanceHeuristic)
 							costOfMove += std::abs(static_cast<int>(newP.X) - static_cast<int>(getEnd().X)) + std::abs(static_cast<int>(newP.Y) - static_cast<int>(getEnd().Y));
-						if (costHeuristic == 2)
-							costOfMove -= std::abs(static_cast<int>(newP.X) - static_cast<int>(getEnd().X)) + std::abs(static_cast<int>(newP.Y) - static_cast<int>(getEnd().Y));
 						possibleMoves.push_back({ costOfMove , newP });
 					}
 				}
