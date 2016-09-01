@@ -282,3 +282,8 @@ $RECYCLE.BIN/
 *.db
 *.vcxproj
 Chess/Chess/Chess.vcxproj.filters
+*.vcxproj
+/Chess/Chess/*.filters
+/Chess/*.sln
+/Chess/*.db
+/Chess/*.opendb

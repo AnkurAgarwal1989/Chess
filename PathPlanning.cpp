@@ -2,11 +2,11 @@
 #include<string.h>
 #include<string>
 #include"Board.h"
-#include"BoardUtility.h"
 #include<iostream>
+#include<fstream>
 #include<chrono>
 
-//Tempalte spec to print the Visited data
+//Template spec to print the Visited data
 template <>
 void printBoardData<Move>(BoardData<Move>& data) {
 	for (auto y_iter : data) {
@@ -24,7 +24,7 @@ void printBoardData<Move>(BoardData<Move>& data) {
 	}
 }
 
-void printPath(std::vector<Position>& P)
+void printPath(const std::vector<Position>& P)
 {
 	for (auto p : P) {
 		std::cout << "(" << p.X << ", " << p.Y << ")\n";
@@ -110,6 +110,32 @@ void solveForPath(Board<std::string>& B, bool useDistanceHeuristic) {
 	}
 }
 
+void readGameFile(Board<std::string>& B, std::string filename) {
+	std::ifstream fs(filename);
+	std::string line;
+	size_t id_x = 0;
+	size_t id_y = 0;
+
+	while (std::getline(fs, line))
+	{
+		for (auto c : line) {
+			B.setPoint(id_x, id_y, std::string(1, c));
+			++id_x;
+			
+			if (id_x == B.width - 1) {
+				id_x = 0;
+				++id_y;
+			}
+			if (id_y == B.height) {
+				std::cout << "File has more data than Game Size. Only reading some part of file\n";
+				break;
+			}
+			std::cout << c;
+		}
+
+	}
+}
+
 void task2() {
 	size_t BOARD_HEIGHT = 8;
 	size_t BOARD_WIDTH = 8;
@@ -119,8 +145,9 @@ void task2() {
 	size_t End_Y = 7;
 
 	Board<std::string> KB{BOARD_HEIGHT, BOARD_WIDTH};
+	readGameFile(KB, "map.txt");
 	bool ret = KB.setStart(Start_X, Start_Y);
-	ret &= KB.setEnd(End_X, End_X);
+	ret &= KB.setEnd(End_X, End_Y);
 	if (ret) {
 		if (KB.getStart() == KB.getEnd()) {
 			std::cout << "Starting and Ending points are the same. \n";

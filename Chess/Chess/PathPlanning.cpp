@@ -6,12 +6,7 @@
 #include<fstream>
 #include<chrono>
 
-<<<<<<< HEAD
-#include<iostream>
-
-=======
-//Tempalte spec to print the Visited data
->>>>>>> 866e0ee2977d132e276554f745981145f9c6dd6e
+//Template spec to print the Visited data
 template <>
 void printBoardData<Move>(BoardData<Move>& data) {
 	for (auto y_iter : data) {
