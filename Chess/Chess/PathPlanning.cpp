@@ -2,10 +2,10 @@
 #include<string.h>
 #include<string>
 #include"Board.h"
-#include"BoardUtility.h"
 #include<iostream>
 #include<chrono>
 
+//Tempalte spec to print the Visited data
 template <>
 void printBoardData<Move>(BoardData<Move>& data) {
 	for (auto y_iter : data) {
@@ -23,7 +23,7 @@ void printBoardData<Move>(BoardData<Move>& data) {
 	}
 }
 
-void printPath(std::vector<Position>& P)
+void printPath(const std::vector<Position>& P)
 {
 	for (auto p : P) {
 		std::cout << "(" << p.X << ", " << p.Y << ")\n";
@@ -38,7 +38,7 @@ bool sortMoves(std::pair<int, Position>& lhs, std::pair<int, Position>& rhs) {
 //Recursive function to search for the best path to the End Goal.
 //if useDistanceHeuristic is false, only the cost of the node is considered.
 //If A* is used, the cost also includes the distance from the End goal.
-bool getPath(Board<std::string>& B, BoardData<Move>& visited, Position K, int moves, bool useDistanceHeuristic)
+bool findPathAhead(Board<std::string>& B, BoardData<Move>& visited, Position K, int moves, bool useDistanceHeuristic)
 {
 	//Return TRUE condition for recursion
 	//If we have reached the Goal, return true;
@@ -71,13 +71,13 @@ bool getPath(Board<std::string>& B, BoardData<Move>& visited, Position K, int mo
 		else {
 			visited[move.second.Y][move.second.X].first = moves + 1;
 			visited[move.second.Y][move.second.X].second = K;
-			getPath(B, visited, move.second, moves + 1, useDistanceHeuristic);
+			findPathAhead(B, visited, move.second, moves + 1, useDistanceHeuristic);
 			}
 	}
 	return false;
 }
 
-void solve(Board<std::string>& B, bool Astar) {
+void solveForPath(Board<std::string>& B, bool useDistanceHeuristic) {
 	BoardData<Move> visited = BoardData<Move>{ B.height , std::vector<Move>{B.width, Move(-1, Position{0,0}) } };
 	//BoardData<Move> visited = BoardData<Move>{ B.height , std::vector<Move>{B.width, Move(-1, Position{0,0}) } };
 	int moves = 0;
@@ -85,7 +85,7 @@ void solve(Board<std::string>& B, bool Astar) {
 	
 	std::vector<Position> bestPath;
 	int pathCost = 0;
-	getPath(B, visited, B.getStart(), moves, Astar);
+	findPathAhead(B, visited, B.getStart(), moves, useDistanceHeuristic);
 	Position K = B.getEnd();
 	pathCost = visited[K.Y][K.X].first;
 	//If the visited cell for END is marked, it means a path was found
@@ -107,8 +107,6 @@ void solve(Board<std::string>& B, bool Astar) {
 	else {
 		std::cout << "No path found \n";
 	}
-
-
 }
 
 void task2() {
@@ -121,7 +119,7 @@ void task2() {
 
 	Board<std::string> KB{BOARD_HEIGHT, BOARD_WIDTH};
 	bool ret = KB.setStart(Start_X, Start_Y);
-	ret &= KB.setEnd(End_X, End_X);
+	ret &= KB.setEnd(End_X, End_Y);
 	if (ret) {
 		if (KB.getStart() == KB.getEnd()) {
 			std::cout << "Starting and Ending points are the same. \n";
@@ -149,7 +147,7 @@ void task2() {
 	KB.printBoardState();
 	std::cout << "\n";
 	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-	solve(KB, true); //True for using distance heuristic
+	solveForPath(KB, true); //True for using distance heuristic
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();

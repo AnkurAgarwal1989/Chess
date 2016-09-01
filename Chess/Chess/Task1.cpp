@@ -10,6 +10,7 @@
 
 
 void task2();
+void task5();
 
 int test1() {
 	unsigned int BOARD_HEIGHT = 7;  // Number of ROWS on baord
@@ -92,6 +93,8 @@ void signalHandler(int signum) {
 	exit(signum);
 }
 
+
+//Given a sequence, validate if it is a series of plausible Knight moves
 bool validateSequence(Board<std::string>& B) {
 	signal(SIGINT, signalHandler);
 	std::cout << "Please number 2 numbers (x, y) position of the Knight. Ctrl+C to exit.\n";
@@ -125,6 +128,7 @@ bool validateSequence(Board<std::string>& B) {
 
 int main(int argc, char* argv[]) {
 
+	task5();
 	task2();
 	/*
 	if (argc < 2) {

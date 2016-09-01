@@ -48,21 +48,9 @@ void printBoardData(BoardData<T>& data) {
 	}
 }
 
-/*template <>
-void printBoardData<Move>(BoardData<Move>& data) {
-	for (auto y_iter : data) {
-		for (auto x_iter : y_iter) {
-			std::cout << x_iter.first << " ";
-		}
-		std::cout << "\n";
-	}
+void printPath(const std::vector<Position>& P);
 
-	/*for (auto y_iter : data) {
-		for (auto x_iter : y_iter) {
-			std::cout << x_iter.first << " ";
-		}
-		std::cout << "\n";
-	}*/
-//}*/
+template <>
+void printBoardData<Move>(BoardData<Move>& data);
 /***************************************************************/
 
