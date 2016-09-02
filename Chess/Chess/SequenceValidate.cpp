@@ -10,7 +10,7 @@
 
 
 void task2(std::vector<Position>&);
-void task5();
+void task5(std::vector<Position>&);
 
 
 
@@ -164,10 +164,10 @@ bool validateSequence(Board<std::string>& B, const std::vector<Position>& testPa
 
 int main(int argc, char* argv[]) {
 	
-	//task5();
+	
 	std::vector<Position> bestPath;
-
-	task2(bestPath);
+	task5(bestPath);
+	//task2(bestPath);
 	
 	/*
 	if (argc < 2) {

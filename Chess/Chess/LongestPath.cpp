@@ -5,6 +5,8 @@
 #include<iostream>
 #include<chrono>
 
+bool validateSequence(Board<std::string>& B, const std::vector<Position>& testPath, bool printLayout);
+
 //Recursive function to search for the best path to the End Goal.
 bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Position K, std::vector<Position>& bestPath, int moveCntr, bool useDistanceHeuristic, int& bestMoves, unsigned int& watchdog)
 {
@@ -113,7 +115,7 @@ bool solveForLongestPath(Board<std::string>& B, std::vector<Position>& bestPath,
 
 //Given a board, a start and an end, find longest path
 //Longest path wihout repeating, is a path travelled by visiting every node.
-void task5() {
+void task5(std::vector<Position>& longestPath) {
 	size_t BOARD_HEIGHT = 16;
 	size_t BOARD_WIDTH = 16;
 	size_t Start_X = 0;
@@ -139,9 +141,8 @@ void task5() {
 	KB.printBoardState();
 	std::cout << "\n";
 	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-	std::vector<Position> longestPath;
-
 	solveForLongestPath(KB, longestPath, true); //True for using distance heuristic
+	validateSequence(KB, longestPath, true);
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
