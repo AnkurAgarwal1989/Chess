@@ -23,7 +23,7 @@ bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Posit
 			//std::cout << moveCntr << "\n";
 
 			//Store the current best path. This will be updated next time we see a better path
-			visited[K.Y][K.X].first = -1; //Unvisit the node and try from other nodes.
+			visited[K.Y][K.X].first.first = -1; //Unvisit the node and try from other nodes.
 			return false;
 		}
 
@@ -38,7 +38,7 @@ bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Posit
 			return true;
 		}
 		else{							   //We are doing worse than previous attempts
-			visited[K.Y][K.X].first = -1;  //Mark the Goal non visited and go back
+			visited[K.Y][K.X].first.first = -1;  //Mark the Goal non visited and go back
 			return false;
 		}
 	}
@@ -61,11 +61,11 @@ bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Posit
 		std::vector<Position> path;
 		
 		//If this node has been visited, we can not go here
-		if (visited[move.second.Y][move.second.X].first > -1) {
+		if (visited[move.second.Y][move.second.X].first.first > -1) {
 			continue;
 		}
 		else {
-			visited[move.second.Y][move.second.X].first = moveCntr + 1;
+			visited[move.second.Y][move.second.X].first.first = moveCntr + 1;
 			visited[move.second.Y][move.second.X].second = K;
 
 			//If End was reached either in max possible moves or watchdog counter was trigerred..return
@@ -73,7 +73,7 @@ bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Posit
 				return true;
 			}
 			else {
-				visited[move.second.Y][move.second.X].first = -1;
+				visited[move.second.Y][move.second.X].first.first = -1;
 			}
 		}
 	}
@@ -86,14 +86,14 @@ bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Posit
 bool solveForLongestPath(Board<std::string>& B, std::vector<Position>& bestPath, bool useDistanceHeuristic) {
 
 	//Initialise the visited data with -1 cost and out of bounds positions
-	BoardData<Move> visited = BoardData<Move>{ B.height, std::vector<Move>{B.width, Move(-1, Position{ B.width, B.height }) } };
+	BoardData<Move> visited = BoardData<Move>{ B.height, std::vector<Move>{B.width, Move(Cost{-1, 0}, Position{ B.width, B.height }) } };
 
 	int bestMoves = 0;
 	unsigned int watchdog = 0;
 	int moveCntr = 0;
 
 	//Cost of Start is 0
-	visited[B.getStart().Y][B.getStart().X].first = 0;
+	visited[B.getStart().Y][B.getStart().X].first.first = 0;
 
 	findLongestPathAhead(B, visited, B.getStart(), bestPath, moveCntr, useDistanceHeuristic, bestMoves, watchdog);
 

@@ -5,6 +5,8 @@
 #include<iostream>
 #include<chrono>
 
+bool validateSequence(Board<std::string>& B, const std::vector<Position>& testPath, bool printLayout);
+
 void printPath(const std::vector<Position>& P)
 {
 	for (auto p : P) {
@@ -85,7 +87,7 @@ bool solveForBestPath(Board<std::string>& B, std::vector<Position>& bestPath, bo
 	return false;
 }
 
-void task2() {
+void task2(std::vector<Position>& bestPath) {
 	size_t BOARD_HEIGHT = 8;
 	size_t BOARD_WIDTH = 8;
 	size_t Start_X = 0;
@@ -125,8 +127,9 @@ void task2() {
 	KB.printBoardState();
 	std::cout << "\n";
 	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-	std::vector<Position> bestPath;
+	//std::vector<Position> bestPath;
 	solveForBestPath(KB, bestPath, true); //True for using distance heuristic
+	validateSequence(KB, bestPath, true);
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
@@ -136,3 +139,4 @@ void task2() {
 	std::cin.get();
 
 }
+
