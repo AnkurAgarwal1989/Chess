@@ -33,7 +33,7 @@ bool findPathAhead(Board<std::string>& B, BoardData<Move>& visited, Moves& openN
 		//if goal reached...break
 		if (parent.second == B.getEnd()) {
 			goalReached = true;
-			std::cout << "goal reached\n";
+			std::cout << "\nEnd reached\n";
 			return true;
 		}
 
@@ -87,56 +87,20 @@ bool solveForBestPath(Board<std::string>& B, std::vector<Position>& bestPath, bo
 	return false;
 }
 
-void task2(std::vector<Position>& bestPath) {
-	size_t BOARD_HEIGHT = 8;
-	size_t BOARD_WIDTH = 8;
-	size_t Start_X = 0;
-	size_t Start_Y = 0;
-	size_t End_X = BOARD_HEIGHT - 1;
-	size_t End_Y = BOARD_HEIGHT - 1;
 
-	Board<std::string> KB{BOARD_HEIGHT, BOARD_WIDTH};
-
-	KB.readGameFile("map.txt", ' ');
-
-	bool ret = KB.setStart(Start_X, Start_Y);
-	ret &= KB.setEnd(End_X, End_Y);
-	if (ret) {
-		if (KB.getStart() == KB.getEnd()) {
-			std::cout << "Starting and Ending points are the same. \n";
-			exit(1);
-		}
-		std::cout << "Initial State of Knight Board \n";
-		//validateSequence(KB);
-	}
-	else {
-		std::cout << "Start or End Point is OUTSIDE checkerboard area. Exiting";
-		exit(1);
-	}
-
-	//KB.setPoint(0, 4, "B");
-	/*KB.setPoint(4, 4, "B");
-	KB.setPoint(1, 4, "W");
-	KB.setPoint(2, 4, "B");
-	KB.setPoint(3, 4, "W");
-	KB.setPoint(5, 3, "B");
-	KB.setPoint(4, 5, "B");
-	KB.setPoint(5, 4, "B");
-	KB.setPoint(4, 6, "B");
-	KB.addTeleportPoints(4, 3, 5, 6);*/
-	KB.printBoardState();
-	std::cout << "\n";
+//Function to calculate path from Start to End.
+//if findShortestPath is true, A* algoithm is used
+//if printKnightMoves is true, the knight's position is displayed on the board
+void pathPlanning(Board<std::string>& KB, std::vector<Position>& bestPath, bool findShortestPath) {
+	
 	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 	//std::vector<Position> bestPath;
-	solveForBestPath(KB, bestPath, true); //True for using distance heuristic
-	validateSequence(KB, bestPath, true);
+	solveForBestPath(KB, bestPath, findShortestPath); //True for using distance heuristic
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
 
-	std::cout << duration;
-	
-	std::cin.get();
+	std::cout << "Time taken = " << duration / (1000) << " milliseconds\n";
 
 }
 

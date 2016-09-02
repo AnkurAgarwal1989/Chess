@@ -115,40 +115,14 @@ bool solveForLongestPath(Board<std::string>& B, std::vector<Position>& bestPath,
 
 //Given a board, a start and an end, find longest path
 //Longest path wihout repeating, is a path travelled by visiting every node.
-void task5(std::vector<Position>& longestPath) {
-	size_t BOARD_HEIGHT = 16;
-	size_t BOARD_WIDTH = 16;
-	size_t Start_X = 0;
-	size_t Start_Y = 0;
-	size_t End_X = 1;
-	size_t End_Y = 1;
-
-	Board<std::string> KB{ BOARD_HEIGHT, BOARD_WIDTH };
-	bool ret = KB.setStart(Start_X, Start_Y);
-	ret &= KB.setEnd(End_X, End_Y);
-	if (ret) {
-		if (KB.getStart() == KB.getEnd()) {
-			std::cout << "Starting and Ending points are the same. \n";
-			exit(1);
-		}
-		std::cout << "Initial State of Knight Board \n";
-	}
-	else {
-		std::cout << "Start or End Point is OUTSIDE checkerboard area. Exiting";
-		exit(1);
-	}
-
-	KB.printBoardState();
-	std::cout << "\n";
+//Function to calculate **longest** path from Start to End.
+//if printKnightMoves is true, the knight's position is displayed on the board
+void longestPath(Board<std::string>& KB, std::vector<Position>& longestPath) {
+	
 	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-	solveForLongestPath(KB, longestPath, true); //True for using distance heuristic
-	validateSequence(KB, longestPath, true);
+	solveForLongestPath(KB, longestPath, true); //True for using distance heuristic. This is always required for longest path
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-
-	std::cout << duration;
-
-	std::cin.get();
+	std::cout << "Time taken = " << duration / (1000) << " milliseconds\n";
 
 }

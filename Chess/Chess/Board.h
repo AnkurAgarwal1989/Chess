@@ -6,6 +6,7 @@
 #include<array>
 #include<fstream>
 #include<iostream>
+#include<exception>
 #include"BoardUtility.h"
 
 using TeleportPoints = std::vector<std::pair<Position, Position>>;
@@ -222,8 +223,17 @@ struct Board {
 		printBoardData(boardData);
 	}
 
-	void readGameFile(std::string filename, char delim) {
-		std::ifstream fs(filename);
+	bool readGameFile(std::string filename, char delim) {
+		std::ifstream fs;
+		try {
+			fs.open(filename);
+		}
+		catch (std::ifstream::failure e) {
+			std::cerr << "Exception in opening the file\nExiting\n";
+			return false;
+			exit(0);
+		}
+
 		std::string line;
 		size_t id_x = 0;
 		size_t id_y = 0;
@@ -232,25 +242,32 @@ struct Board {
 		while (std::getline(fs, line, delim) && spaceOnBoard)
 		{
 			for (auto c : line) {
-				if (c == '\n' || c== '\r') //handle new line char
-					continue;
-				//Special characters...Teleport and Start and End
-				if (c == 'S') {
+				switch (c)
+				{
+				case 'S':
 					setStart(id_x, id_y);
-				}
-				else if (c == 'E') {
+					break;
+
+				case 'E':
 					setEnd(id_x, id_y);
-				}
-				else if (c == 'T') { //If a T location is encountered, keep it. We will need an even number of location for teleport
+					break;
+
+				case 'T':
+					//If a T location is encountered, keep it. We will need an even number of location for teleport
 					Tlocs.push_back(id_x);
 					Tlocs.push_back(id_y);
 					if (Tlocs.size() == 4) {
 						addTeleportPoints(Tlocs[0], Tlocs[1], Tlocs[2], Tlocs[3]);
 						Tlocs.clear(); //Reset for next points;
 					}
-				}
-				else{
-					setPoint(id_x, id_y, std::string(1, c));
+					break;
+						
+				default:
+					if (c == 'R' || c == 'W' || c == 'B' || c == 'L' || c == '.'){
+						setPoint(id_x, id_y, std::string(1, c));
+					}
+					else
+						continue;
 				}
 				
 				++id_x;
@@ -274,6 +291,7 @@ struct Board {
 			std::cout << "Found an unpaired Teleport location. It will be set to a regular '.' location";
 			(Tlocs[0], Tlocs[1], ".");
 		}
+		return true;
 	}
 
 private:
