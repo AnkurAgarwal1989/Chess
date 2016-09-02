@@ -54,20 +54,18 @@ bool validateSequence(Board<std::string>& B, const std::vector<Position>& testPa
 		std::cout << "Not enough moves\n";
 		return false;
 	}
-	std::cout << "\nStart\n";
-	printPath(testPath);
-	std::cout << "End\n";
-	
+	std::cout << "\nChecking sequence validity... \n";
+
 	std::vector<Position> path = testPath;
 	Position K_prev = path[0];
 	if (B.canTeleport(K_prev))
-		std::cout << "This path has a Teleport\n";
+		std::cout << "\tThis path has a Teleport\n";
 
 	for (size_t i = 1; i < path.size(); ++i) {
 		Position K_next = path[i];
 		if (B.isValidKnightMove(K_prev, K_next.X, K_next.Y)) {
 			if (B.canTeleport(K_next)) {
-				std::cout << "This path has a Teleport\n";
+				std::cout << "\tThis path has a Teleport\n";
 			}
 			K_prev = K_next;
 			if (printKnightMoves) {
@@ -78,9 +76,14 @@ bool validateSequence(Board<std::string>& B, const std::vector<Position>& testPa
 		else {
 			std::cout << "Move # " << i << " is not a valid move \n";
 			std::cout << "Can not move from " << "(" << K_prev.X << "," << K_prev.Y << ") to (" << K_next.X << "," << K_next.Y << ")\n";
+			std::cout << "Path Invalid\n";
 			return false;
 		}
 	}
+	std::cout << "\nPath Valid";
+	std::cout << "\nStart\n";
+	printPath(testPath);
+	std::cout << "End\n";
 	return true;
 }
 
