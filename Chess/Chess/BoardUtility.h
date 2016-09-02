@@ -28,7 +28,8 @@ struct Position {
 
 //Alias to hold Cost(first) and New Position (second) 
 //We will sort on first for smallest cost.
-using Move = std::pair<int, Position>;
+using Cost = std::pair<int, int>;  //first Cost is G(move cost). second is H(Heuristic cost)
+using Move = std::pair<Cost, Position>;
 using Moves = std::vector< Move >;
 
 
@@ -53,8 +54,9 @@ void printBoardData<Move>(BoardData<Move>& data);
 
 void printPath(const std::vector<Position>& P);
 
-bool sortMoves(std::pair<int, Position>& lhs, std::pair<int, Position>& rhs);
+bool sortMoves(Move& lhs, Move& rhs);
 
-bool sortMovesDesc(std::pair<int, Position>& lhs, std::pair<int, Position>& rhs);
+bool sortMovesDesc(Move& lhs, Move& rhs);
+
 /***************************************************************/
 

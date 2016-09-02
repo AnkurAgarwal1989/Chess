@@ -4,6 +4,8 @@
 #include<utility>
 #include<map>
 #include<array>
+#include<fstream>
+#include<iostream>
 #include"BoardUtility.h"
 
 using TeleportPoints = std::vector<std::pair<Position, Position>>;
@@ -150,7 +152,7 @@ struct Board {
 		Position curr{ getEnd() }, visitedFrom{ getEnd() };
 		bestPath.push_back(curr);
 		int pathCost = 0;
-		pathCost = visited[curr.Y][curr.X].first;
+		pathCost = visited[curr.Y][curr.X].first.first;
 		while (visitedFrom != getStart()) {					//While we reach the beginning cell
 			visitedFrom = visited[curr.Y][curr.X].second;	//How did we land at this cell
 			curr = visitedFrom;								//Make the landing cell as new focus location
@@ -170,7 +172,8 @@ struct Board {
 	//Updates the list of possible moves from the current knigth position
 	// int costHeuristic: 0 is naiive (no extra cost), 1 is A*(manhattan distance from end), 
 	// 2 is opposite of A* (used to find longest path) 
-	void getValidMoves(const Position K, Moves& possibleMoves, bool useDistanceHeuristic) { 
+	void getValidMoves(const Position K, Moves& possibleMoves, bool useDistanceHeuristic) {
+		possibleMoves.clear();
 		for (size_t direction = 0; direction < 4; ++direction) {
 			if (isBarrierInPath(K, Dx[direction], Dy[direction])) //If we hit the barrier in this direction, move on to next
 				continue;
@@ -185,11 +188,12 @@ struct Board {
 						if (canTeleport(newP))
 							std::cout << "Teleporting \n";
 						
-						int costOfMove = COST[boardData[newP.Y][newP.X]];
+						int G = COST[boardData[newP.Y][newP.X]];
+						int H = 0;
 						//If A* algo...the cost also includes the distance from END
 						if (useDistanceHeuristic)
-							costOfMove += std::abs(static_cast<int>(newP.X) - static_cast<int>(getEnd().X)) + std::abs(static_cast<int>(newP.Y) - static_cast<int>(getEnd().Y));
-						possibleMoves.push_back({ costOfMove , newP });
+							H = std::abs(static_cast<int>(newP.X) - static_cast<int>(getEnd().X)) + std::abs(static_cast<int>(newP.Y) - static_cast<int>(getEnd().Y));
+						possibleMoves.push_back({ Cost{G, H} , newP });
 					}
 				}
 			}
@@ -218,7 +222,62 @@ struct Board {
 		printBoardData(boardData);
 	}
 
+	void readGameFile(std::string filename, char delim) {
+		std::ifstream fs(filename);
+		std::string line;
+		size_t id_x = 0;
+		size_t id_y = 0;
+		std::vector<unsigned int> Tlocs(0);
+		bool spaceOnBoard = true;
+		while (std::getline(fs, line, delim) && spaceOnBoard)
+		{
+			for (auto c : line) {
+				if (c == '\n' || c== '\r') //handle new line char
+					continue;
+				//Special characters...Teleport and Start and End
+				if (c == 'S') {
+					setStart(id_x, id_y);
+				}
+				else if (c == 'E') {
+					setEnd(id_x, id_y);
+				}
+				else if (c == 'T') { //If a T location is encountered, keep it. We will need an even number of location for teleport
+					Tlocs.push_back(id_x);
+					Tlocs.push_back(id_y);
+					if (Tlocs.size() == 4) {
+						addTeleportPoints(Tlocs[0], Tlocs[1], Tlocs[2], Tlocs[3]);
+						Tlocs.clear(); //Reset for next points;
+					}
+				}
+				else{
+					setPoint(id_x, id_y, std::string(1, c));
+				}
+				
+				++id_x;
+
+				if (id_x == width) { //A row in the grid is now full. Move to next row, first column
+					id_x = 0;
+					++id_y;
+				}
+				if (id_y == height) {
+					std::cout << "File has more data than board size. Only reading first " << height*width << " entries of file\n";
+					spaceOnBoard = false;
+					break;
+				}
+				//std::cout << c;
+			}
+
+		}
+
+		//If there is still any point left in Tlocs...set it to a regular point
+		if (Tlocs.size() > 0) {
+			std::cout << "Found an unpaired Teleport location. It will be set to a regular '.' location";
+			(Tlocs[0], Tlocs[1], ".");
+		}
+	}
+
 private:
+	//Initially set S and E to origin.
 	Position Start{ 0,0 };
 	Position End{ 0,0 };
 };
