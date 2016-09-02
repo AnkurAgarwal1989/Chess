@@ -17,47 +17,52 @@ void printPath(const std::vector<Position>& P)
 //Recursive function to search for the best path to the End Goal.
 //if useDistanceHeuristic is false, only the cost of the node is considered.
 //If A* is used, the cost also includes the distance from the End goal.
-bool findPathAhead(Board<std::string>& B, BoardData<Move>& visited, Moves& openNodes, Position K, bool useDistanceHeuristic)
+bool findPathAhead(Board<std::string>& B, BoardData<Move>& visited, Moves& openNodes, bool useDistanceHeuristic)
 {
 	Moves possMoves;
 	int moveCntr = 0;
-	openNodes.push_back({ Cost{ 0,0 }, B.getStart() });
+	Move start;
+	start.pos = B.getStart();
+	openNodes.push_back(start);
+	
 	bool goalReached = false;
 	bool noMovesLeft = false;
-	while (!openNodes.empty() && !goalReached) {
+	while (!openNodes.empty()) {
 		
-		std::sort(openNodes.begin(), openNodes.end(), sortMovesDesc);// We will pop the nodes the end.Smallest cost nodes popped first
+		std::sort(openNodes.begin(), openNodes.end(), sortMovesDesc);// Descending. We will pop the nodes from the end. Smallest cost nodes popped first
+		
 		Move parent = openNodes[openNodes.size() - 1]; //Get element with smallest cost
 		openNodes.pop_back();							//Remove the node from the open list;
 
 		//if goal reached...break
-		if (parent.second == B.getEnd()) {
+		if (parent.pos == B.getEnd()) {
 			goalReached = true;
 			std::cout << "\nEnd reached\n";
 			return true;
 		}
 
-		int costAtCurrentNode = visited[parent.second.Y][parent.second.X].first.first;
+		int costAtCurrentNode = visited[parent.pos.Y][parent.pos.X].cost.G;
 
 		//get a list of valid moves
-		B.getValidMoves(parent.second, possMoves, useDistanceHeuristic); //A*
+		B.getValidMoves(parent.pos, possMoves, useDistanceHeuristic); //A*
 
 		for (auto move : possMoves) {
-			int costOfNextNode = move.first.first;
-			if (visited[move.second.Y][move.second.X].first.first > -1 &&									//if already visited and 
-				visited[move.second.Y][move.second.X].first.first <= costAtCurrentNode + costOfNextNode) {	//new cost worse than old cost, continue
+			int costOfNextNode = move.cost.G;
+			if (visited[move.pos.Y][move.pos.X].cost.G > -1 &&									//if already visited and 
+				visited[move.pos.Y][move.pos.X].cost.G <= costAtCurrentNode + costOfNextNode) {	//new cost worse than old cost, continue
 				continue;
 			}
 			//We have a better way of getting here
 			else {
-				visited[move.second.Y][move.second.X].first.second = moveCntr++;
-				visited[move.second.Y][move.second.X].first.first = costAtCurrentNode + costOfNextNode;
-				visited[move.second.Y][move.second.X].second = parent.second;
-				openNodes.push_back(move);
+				visited[move.pos.Y][move.pos.X].cost.H = moveCntr++;
+				visited[move.pos.Y][move.pos.X].cost.G = costAtCurrentNode + costOfNextNode;
+				visited[move.pos.Y][move.pos.X].pos = parent.pos;
+				move.cost.G = costAtCurrentNode + costOfNextNode; //Update the cost of getting to this node, Heuristic should not be used for sorting moves on open nodes
+				openNodes.push_back(move);							   //Add to list of explorable nodes
 			}
 		}
 	}
-	return false;
+	return goalReached;
 }
 
 //Function to initiate Best Path search.
@@ -69,15 +74,12 @@ bool solveForBestPath(Board<std::string>& B, std::vector<Position>& bestPath, bo
 	BoardData<Move> visited = BoardData<Move>{ B.height , std::vector<Move>{B.width, Move(Cost{-1, 0}, Position{ B.width, B.height }) } };
 
 	//Cost of Start is 0
-	visited[B.getStart().Y][B.getStart().X].first.first = 0;
+	visited[B.getStart().Y][B.getStart().X].cost.G = 0;
 
-	if (findPathAhead(B, visited, openNodes, B.getStart(), useDistanceHeuristic)) {
+	if (findPathAhead(B, visited, openNodes, useDistanceHeuristic)) {
 		int pathCost = 0;
 		pathCost = B.getPathStart2End(visited, bestPath);
-		//Path contains Start and End, so number of moves = size - 1
-		std::cout << "\nPath found with length " << bestPath.size() - 1 << " and cost " << pathCost << "\nStart\n";
-		printPath(bestPath);
-		std::cout << "\nEnd\n";
+		std::cout << "\nPath found with " << bestPath.size() - 1 << " moves and cost " << pathCost << "\n";
 		return true;
 	}
 	else {
@@ -100,7 +102,7 @@ void pathPlanning(Board<std::string>& KB, std::vector<Position>& bestPath, bool 
 
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
 
-	std::cout << "Time taken = " << duration / (1000) << " milliseconds\n";
+	std::cout << "Time taken = " << duration / (1000) << " millisecond(s)\n";
 
 }
 

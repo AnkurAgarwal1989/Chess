@@ -26,10 +26,27 @@ struct Position {
 /***************************************************************/
 
 
-//Alias to hold Cost(first) and New Position (second) 
+//Struct to hold Cost of cell (G)
+//and heuristic cost (H)
 //We will sort on first for smallest cost.
-using Cost = std::pair<int, int>;  //first Cost is G(move cost). second is H(Heuristic cost)
-using Move = std::pair<Cost, Position>;
+struct Cost {
+	int G;  //Cost of Cell
+	int H;	//Heuristic Cost
+
+	Cost() :G(0), H(0) {};
+	Cost(int g, int h) :G(g), H(h) {};
+};
+
+//Struct to define a Move
+//A move is defined by the cost of the new location and the position of the new location
+struct Move {
+	Cost cost;
+	Position pos;
+
+	Move() : cost(), pos(0,0) {};
+	Move(Cost c, Position p) : cost(c), pos(p) {};
+};
+
 using Moves = std::vector< Move >;
 
 

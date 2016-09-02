@@ -153,9 +153,9 @@ struct Board {
 		Position curr{ getEnd() }, visitedFrom{ getEnd() };
 		bestPath.push_back(curr);
 		int pathCost = 0;
-		pathCost = visited[curr.Y][curr.X].first.first;
+		pathCost = visited[curr.Y][curr.X].cost.G;
 		while (visitedFrom != getStart()) {					//While we reach the beginning cell
-			visitedFrom = visited[curr.Y][curr.X].second;	//How did we land at this cell
+			visitedFrom = visited[curr.Y][curr.X].pos;	//How did we land at this cell
 			curr = visitedFrom;								//Make the landing cell as new focus location
 			canTeleport(visitedFrom);						//Did we teleport to this location? If yes, we need to get the teleport origin			
 			bestPath.push_back(visitedFrom);				//Append landing location to path. if we teleported, the path should be the teleport origin
@@ -171,8 +171,8 @@ struct Board {
 	//If there is a wall in any of the 4 directions we can not move to those
 	//If a direction is open for moving (no wall), we then check if the point to move to is valid
 	//Updates the list of possible moves from the current knigth position
-	// int costHeuristic: 0 is naiive (no extra cost), 1 is A*(manhattan distance from end), 
-	// 2 is opposite of A* (used to find longest path) 
+	// useDistanceHeuristic: manhattan distance from end is used
+
 	void getValidMoves(const Position K, Moves& possibleMoves, bool useDistanceHeuristic) {
 		possibleMoves.clear();
 		for (size_t direction = 0; direction < 4; ++direction) {
@@ -185,9 +185,10 @@ struct Board {
 					int newY = K.Y + My[(direction * 2) + i];
 					if (isValidMove(newX, newY)) { //Is valid Move should return cost of the move
 						Position newP{ newX, newY };
-
-						if (canTeleport(newP))
-							std::cout << "Teleporting \n";
+						Position temp{ newP };
+						if (canTeleport(newP)) {
+							//std::cout << "Teleport cell detected";
+						}
 						
 						int G = COST[boardData[newP.Y][newP.X]];
 						int H = 0;
@@ -224,21 +225,23 @@ struct Board {
 	}
 
 	bool readGameFile(std::string filename, char delim) {
+		std::cout << "Reading layout from file " << filename << "\n";
 		std::ifstream fs;
 		try {
 			fs.open(filename);
 		}
 		catch (std::ifstream::failure e) {
-			std::cerr << "Exception in opening the file\nExiting\n";
+			std::cout << "Exception in opening the file\nExiting\n";
 			return false;
 			exit(0);
 		}
-
+		std::cout << "Reading layout from file " << filename << "\n";
 		std::string line;
 		size_t id_x = 0;
 		size_t id_y = 0;
 		std::vector<unsigned int> Tlocs(0);
 		bool spaceOnBoard = true;
+		std::cout << "Here";
 		while (std::getline(fs, line, delim) && spaceOnBoard)
 		{
 			for (auto c : line) {
@@ -286,11 +289,20 @@ struct Board {
 
 		}
 
+		try {
+			fs.open(filename);
+		}
+		catch (std::ifstream::failure e) {
+			std::cerr << "Exception in opening the file\nExiting\n";
+			return false;
+		}
+
 		//If there is still any point left in Tlocs...set it to a regular point
 		if (Tlocs.size() > 0) {
 			std::cout << "Found an unpaired Teleport location. It will be set to a regular '.' location";
 			(Tlocs[0], Tlocs[1], ".");
 		}
+		//printBoardState();
 		return true;
 	}
 

@@ -25,7 +25,7 @@ bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Posit
 			//std::cout << moveCntr << "\n";
 
 			//Store the current best path. This will be updated next time we see a better path
-			visited[K.Y][K.X].first.first = -1; //Unvisit the node and try from other nodes.
+			visited[K.Y][K.X].cost.G = -1; //Unvisit the node and try from other nodes.
 			return false;
 		}
 
@@ -40,7 +40,7 @@ bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Posit
 			return true;
 		}
 		else{							   //We are doing worse than previous attempts
-			visited[K.Y][K.X].first.first = -1;  //Mark the Goal non visited and go back
+			visited[K.Y][K.X].cost.G = -1;  //Mark the Goal non visited and go back
 			return false;
 		}
 	}
@@ -63,19 +63,19 @@ bool findLongestPathAhead(Board<std::string>& B, BoardData<Move>& visited, Posit
 		std::vector<Position> path;
 		
 		//If this node has been visited, we can not go here
-		if (visited[move.second.Y][move.second.X].first.first > -1) {
+		if (visited[move.pos.Y][move.pos.X].cost.G > -1) {
 			continue;
 		}
 		else {
-			visited[move.second.Y][move.second.X].first.first = moveCntr + 1;
-			visited[move.second.Y][move.second.X].second = K;
+			visited[move.pos.Y][move.pos.X].cost.G = moveCntr + 1;
+			visited[move.pos.Y][move.pos.X].pos = K;
 
 			//If End was reached either in max possible moves or watchdog counter was trigerred..return
-			if (findLongestPathAhead(B, visited, move.second, bestPath, moveCntr + 1, useDistanceHeuristic, bestMoves, watchdog)) {
+			if (findLongestPathAhead(B, visited, move.pos, bestPath, moveCntr + 1, useDistanceHeuristic, bestMoves, watchdog)) {
 				return true;
 			}
 			else {
-				visited[move.second.Y][move.second.X].first.first = -1;
+				visited[move.pos.Y][move.pos.X].cost.G = -1;
 			}
 		}
 	}
@@ -95,15 +95,13 @@ bool solveForLongestPath(Board<std::string>& B, std::vector<Position>& bestPath,
 	int moveCntr = 0;
 
 	//Cost of Start is 0
-	visited[B.getStart().Y][B.getStart().X].first.first = 0;
+	visited[B.getStart().Y][B.getStart().X].cost.G = 0;
 
 	findLongestPathAhead(B, visited, B.getStart(), bestPath, moveCntr, useDistanceHeuristic, bestMoves, watchdog);
 
 	if (bestPath.size() > 0) {
 		//Path includes Start and End, so path length = size - 1
-		std::cout << "\nPath found with length " << bestPath.size() - 1 << "\nStart\n";
-		printPath(bestPath);
-		std::cout << "\nEnd\n";
+		std::cout << "\nPath found with" << bestPath.size() - 1 << " moves\n";
 		return true;
 	}
 
@@ -123,6 +121,6 @@ void longestPath(Board<std::string>& KB, std::vector<Position>& longestPath) {
 	solveForLongestPath(KB, longestPath, true); //True for using distance heuristic. This is always required for longest path
 	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-	std::cout << "Time taken = " << duration / (1000) << " milliseconds\n";
+	std::cout << "Time taken = " << duration / (1000) << " millisecond(s)\n";
 
 }

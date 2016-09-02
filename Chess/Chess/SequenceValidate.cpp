@@ -54,17 +54,20 @@ bool validateSequence(Board<std::string>& B, const std::vector<Position>& testPa
 		std::cout << "Not enough moves\n";
 		return false;
 	}
-
+	std::cout << "\nStart\n";
+	printPath(testPath);
+	std::cout << "End\n";
+	
 	std::vector<Position> path = testPath;
 	Position K_prev = path[0];
 	if (B.canTeleport(K_prev))
-		std::cout << "Teleporting \n";
+		std::cout << "This path has a Teleport\n";
 
 	for (size_t i = 1; i < path.size(); ++i) {
 		Position K_next = path[i];
 		if (B.isValidKnightMove(K_prev, K_next.X, K_next.Y)) {
 			if (B.canTeleport(K_next)) {
-				std::cout << "Teleporting \n";
+				std::cout << "This path has a Teleport\n";
 			}
 			K_prev = K_next;
 			if (printKnightMoves) {
@@ -98,7 +101,7 @@ void setupBoard(Board<std::string>& KB, size_t Start_X, size_t Start_Y, size_t E
 			exit(1);
 		}
 		std::cout << "Initial State of Knight Board \n";
-		//validateSequence(KB);
+		KB.printBoardState();
 	}
 	else {
 		std::cout << "Start or End Point is OUTSIDE checkerboard area. Exiting";
