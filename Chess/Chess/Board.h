@@ -179,24 +179,42 @@ struct Board {
 	//Function to get the Path from the Visited data struct
 	//Needs a reference to a vector of Positions
 	int getPathStart2End(BoardData<Move>& visited, std::vector<Position>& bestPath) {
+		if (boardData[getStart().Y][getStart().X] == "T") {
+			Position temp = getStart();
+			canTeleport(temp);
+			setStart(temp.X, temp.Y);
+		}
 		//Retrieve the best path for future use
 		bestPath.clear();
 		Position curr{ getEnd() }, visitedFrom{ getEnd() };
+		bestPath.push_back(curr);
 		int pathCost = 0;
 		pathCost = visited[curr.Y][curr.X].cost.H;
-		while (1){//(curr != getStart()) {					//While we reach the beginning cell
-			bestPath.push_back(curr);
-			std::cout << "current loc: " << curr.X << "," << curr.Y << "\n";
+		std::cout << getStart().X << getStart().Y;
+		while (visitedFrom != getStart()) {					//While we reach the beginning cell
 			visitedFrom = visited[curr.Y][curr.X].pos;	//How did we land at this cell
-			std::cout << "visited from loc: " << visitedFrom.X << "," << visitedFrom.Y << "\n";
+			std::cout << "current loc: " << curr.X << "," << curr.Y << "\n";
+			//visitedFrom = visited[curr.Y][curr.X].pos;	//How did we land at this cell
+			//std::cout << "visited from loc: " << visitedFrom.X << "," << visitedFrom.Y << "\n";
 			curr = visitedFrom;
-			if (canTeleport(curr)) {
-				std::cout << "teleported: " << curr.X << "," << curr.Y << "\n";
-			}
+			canTeleport(visitedFrom);
+			bestPath.push_back(visitedFrom);
+
+			/******************/
+			//If start was a T point. Needs different handling
+			/*if (boardData[curr.Y][curr.X] == "T") { //Teleport cells with looping need to be handled differently
+			Position T_pair = curr; //This is a current teleport position...find its pair
+			canTeleport(T_pair);
+			bestPath.push_back(T_pair);
+			}*/
+			//if (canTeleport(curr)) {
+			//	std::cout << "teleported: " << curr.X << "," << curr.Y << "\n";
+			//}
 			//if (visitedFrom == getStart())
 			//	break;
 			//canTeleport(curr);						//Did we teleport to this location? If yes, we need to get the teleport origin			
 			//bestPath.push_back(curr);				//Append landing location to path. if we teleported, the path should be the teleport origin
+			/******************/
 		}
 
 		//Needs to be reversed because we are going from End to Start. We want path from S to E.
