@@ -16,10 +16,9 @@ bool validateSequence(Board<std::string>&, const std::vector<Position>&, bool);
 void setupBoard(Board<std::string>&, size_t, size_t, size_t, size_t, const std::string&);
 
 void printUsage(std::string name) {
-	std::cout << "Usage: " << name << "\n"
+	std::cout << "Usage: " << name << " OPTIONS Level[1-5] [Height] [Width] DisplayBoard[T/F] [Start_X] [Start_Y] [End_X] [End_Y] [Full path to layout file (optional)] \n"
 		<< "Options:\n"
 		<< "\t-h,--help\t\tShow this help message\n\n"
-		<< "\tLevel[1-5] [Height] [Width] DisplayBoard[T/F] [Start_X] [Start_Y] [End_X] [End_Y] [Full path to layout file (optional)]\n\n"
 		<< "\tSample Usage: To run program for Level 2 with an 8x8 board. Starting at (0,0), Ending at (7,7) and displaying board state\n"
 		<< "\t" << name<< " 2 8 8 T 0 0 7 7\n"
 		<< std::endl;
@@ -41,13 +40,20 @@ int main(int argc, char* argv[]) {
 	
 	if (argc < 2) {
 		printUsage(argv[0]);
-		return 1;
+		return 0;
 	}
 
-	if (argc > 2 && argc < 9) {
-		std::cout << "Too few arguments \n";
-		printUsage(argv[0]);
-		return 1;
+	if (argc < 9) {
+		for (int i = 1; i < argc; ++i) {
+			std::string arg = argv[i];
+			if ((arg == "-h") || (arg == "--help")) {
+				printUsage(argv[0]);
+				return 0;
+			}
+			std::cout << "Too few arguments \n";
+			printUsage(argv[0]);
+			return 0;
+		}
 	}
 
 	if (argc >= 9) {
@@ -77,12 +83,13 @@ int main(int argc, char* argv[]) {
 	bool findShortestPath = true;
 
 	setupBoard(KB, Start_X, Start_Y, End_X, End_Y, layoutFfilename);
+	std::cout << "\nInitial state\n";
 	KB.printBoardState();
 
 	switch (L)
 	{
 	case 1:
-		validateSequence_manual(KB, true);
+		validateSequence_manual(KB, printKnightMoves);
 		break;
 
 	case 2:
@@ -110,7 +117,7 @@ int main(int argc, char* argv[]) {
 		break;
 	}
 
-	std::cout << "\nDone \n";
+	std::cout << "\nDone. Press Enter to exit. \n";
 	std::cin.get();
 	return 1;
 }

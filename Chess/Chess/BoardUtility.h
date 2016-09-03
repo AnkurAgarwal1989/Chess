@@ -31,10 +31,10 @@ struct Position {
 //We will sort on first for smallest cost.
 struct Cost {
 	int G;  //Cost of Cell
-	int H;	//Heuristic Cost
+	float H;	//Heuristic Cost
 
-	Cost() :G(0), H(0) {};
-	Cost(int g, int h) :G(g), H(h) {};
+	Cost() : G(0), H(0) {};
+	Cost(int g, float h) : G(g), H(h) {};
 };
 
 //Struct to define a Move

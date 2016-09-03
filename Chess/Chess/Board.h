@@ -45,7 +45,6 @@ struct Board {
 				return false;
 			}
 			if (boardData[Y][X] == "T") { //If starting from a T location, 
-				std::cout << "Starting from a Teleport location\n";
 				S.X = X;
 				S.Y = Y;
 				Start.X = S.X;
@@ -178,7 +177,7 @@ struct Board {
 
 	//Function to get the Path from the Visited data struct
 	//Needs a reference to a vector of Positions
-	int getPathStart2End(BoardData<Move>& visited, std::vector<Position>& bestPath) {
+	float getPathStart2End(BoardData<Move>& visited, std::vector<Position>& bestPath) {
 		if (boardData[getStart().Y][getStart().X] == "T") {
 			Position temp = getStart();
 			canTeleport(temp);
@@ -188,41 +187,18 @@ struct Board {
 		bestPath.clear();
 		Position curr{ getEnd() }, visitedFrom{ getEnd() };
 		bestPath.push_back(curr);
-		int pathCost = 0;
-		pathCost = visited[curr.Y][curr.X].cost.H;
-		std::cout << getStart().X << getStart().Y;
-		while (visitedFrom != getStart()) {					//While we reach the beginning cell
+		float pathCost = 0;
+		pathCost = visited[curr.Y][curr.X].cost.H;		//Visited's H cost is the total cost of reaching the cell
+		
+		while (visitedFrom != getStart()) {				//While we reach the beginning cell
 			visitedFrom = visited[curr.Y][curr.X].pos;	//How did we land at this cell
-			std::cout << "current loc: " << curr.X << "," << curr.Y << "\n";
-			//visitedFrom = visited[curr.Y][curr.X].pos;	//How did we land at this cell
-			//std::cout << "visited from loc: " << visitedFrom.X << "," << visitedFrom.Y << "\n";
-			curr = visitedFrom;
-			canTeleport(visitedFrom);
-			bestPath.push_back(visitedFrom);
-
-			/******************/
-			//If start was a T point. Needs different handling
-			/*if (boardData[curr.Y][curr.X] == "T") { //Teleport cells with looping need to be handled differently
-			Position T_pair = curr; //This is a current teleport position...find its pair
-			canTeleport(T_pair);
-			bestPath.push_back(T_pair);
-			}*/
-			//if (canTeleport(curr)) {
-			//	std::cout << "teleported: " << curr.X << "," << curr.Y << "\n";
-			//}
-			//if (visitedFrom == getStart())
-			//	break;
-			//canTeleport(curr);						//Did we teleport to this location? If yes, we need to get the teleport origin			
-			//bestPath.push_back(curr);				//Append landing location to path. if we teleported, the path should be the teleport origin
-			/******************/
+			curr = visitedFrom;							//Move to the new cell.
+			canTeleport(visitedFrom);					//Is the new cell a teleport cell? if yes, we reached here via a teleport
+			bestPath.push_back(visitedFrom);			//Push the location
 		}
 
 		//Needs to be reversed because we are going from End to Start. We want path from S to E.
 		std::reverse(bestPath.begin(), bestPath.end());
-		std::cout << "BestPath\n";
-		for (auto p : bestPath) {
-			std::cout << "current loc: " << p.X << "," << p.Y << "\n";
-		}
 		return pathCost;
 	}
 
@@ -245,18 +221,16 @@ struct Board {
 					int newY = K.Y + My[(direction * 2) + i];
 					if (isValidMove(newX, newY)) { //Is valid Move should return cost of the move
 						Position newP{ newX, newY };
-						//std::cout << "validmove " << newX <<"," << newY << "\n";
 						if (canTeleport(newP)) {
 							//std::cout << "This can take us to a Teleport cell\n";
 						}
 						
 						int G = COST[boardData[newP.Y][newP.X]];
-						int H = 0;
+						float H = 0;
 						//If A* algo...the cost also includes the distance from END
 						if (useDistanceHeuristic) {
 							H = std::abs(static_cast<int>(newP.X) - static_cast<int>(getEnd().X)) + std::abs(static_cast<int>(newP.Y) - static_cast<int>(getEnd().Y));
-							if (H < 3)
-								H += 6;
+							H = H / 2.5; //The knight moves 2.5 time the distance in one move. We need to weigh the cost.
 						}
 						possibleMoves.push_back({ Cost{G, H} , newP });
 					}
@@ -288,15 +262,16 @@ struct Board {
 	}
 
 	bool readGameFile(std::string filename, char delim) {
-		std::cout << "Reading layout from file " << filename << "\n";
-		std::ifstream fs;
-		try {
-			fs.open(filename);
+		
+		std::ifstream fs(filename);
+		if (fs) {
+			std::cout << "Reading layout from file " << filename << "\n";
 		}
-		catch (std::ifstream::failure e) {
-			std::cout << "Exception in opening the file\nExiting\n";
+		else{
+			std::cout << "Can not read layout from file " << filename << "\n";
+			std::cout << "Press Enter to continue or Ctrl+C to exit\n";
+			std::cin.get();
 			return false;
-			exit(0);
 		}
 		std::string line;
 		size_t id_x = 0;
