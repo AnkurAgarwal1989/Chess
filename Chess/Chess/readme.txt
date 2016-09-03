@@ -29,7 +29,7 @@ Expected behavior:
 6. If the layout only has one [T]eleport point instead of a pair, it is replaced with a regular '.' point.
 
 
-Salient features:
+Implementation logic:
 1. A* was used for shortest path from S to E. A 1:1 weighting between Cell Cost (G) and Heuristic Distance (H) did not work. Since the knight covers a larger distance in 1 move than the cost of a move, the H cost was down weighted by 2.50. The G cost was used to break ties during sorting of nodes.
 2. The longest path uses the same H measure but in an opposite way. It tries to move (or keep, depending on where you S) the knight away from the E in the initial part of the path finding. All moves are then filled till the E is reached. It tries to move the Knight to every possible cell atleast once, resulting in the longest path.
 3. For large boards (32x32 or more), there is no way (or one that I could think of), to ascertain if the longest path is reached. I have used a "watchdog" counter of sorts. The recursive algorithm keeps track of the longest path and if we don't see a longer path for more than 'height x width' iterations, we bail out having found some "longest" path.
