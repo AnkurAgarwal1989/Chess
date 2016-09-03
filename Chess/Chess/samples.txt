@@ -1,0 +1,12 @@
+Sample usage:
+1.To run program for Level 1 with an 8x8 board. Starting at (0,0), Ending at (7,7) and displaying board state
+KnightBoard.exe 1 8 8 T 0 0 7 7
+
+2.To run program for Level 3 with an 8x8 board. Starting at (0,0), Ending at (7,7) and displaying board state
+KnightBoard.exe 2 8 8 T 0 0 7 7
+
+3.To run program for Level 4 with an 32x32 board. Starting at (30,30), Ending at (30,4) and displaying board state
+KnightBoard.exe 4 32 32 T 30 30 30 4
+
+4.To run program for Level 5 with an 32x32 board. Starting at (0,0), Ending at (31, 31) and NOT displaying board state
+KnightBoard.exe 4 32 32 F 0 0 31 31
