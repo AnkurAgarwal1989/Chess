@@ -104,12 +104,23 @@ void setupBoard(Board<std::string>& KB, size_t Start_X, size_t Start_Y, size_t E
 		std::cout << "End Point is INVALID. Exiting\n";
 		exit(0);
 	}
+
+	//Special case...if both start and end are on a Teleport pair
+	{
+		Position tempS = KB.getStart();
+		Position tempE = KB.getEnd();
+		KB.canTeleport(tempE);
+		if (tempE == tempS) {
+			std::cout << "\nStarting and Ending points are a Teleport pair. S == E. Exiting\n";
+			exit(0);
+		}
+	}
 	
 	if (KB.getStart() == KB.getEnd()) {
-			std::cout << "Starting and Ending points are the same. Exiting\n";
+			std::cout << "\nStarting and Ending points are the same. Exiting\n";
 			exit(0);
 	}
 
 	std::cout << "\n Starting at: (" << Start_X << "," << Start_Y << ")\n";
-	std::cout << "Ending at: (" << End_X << "," << End_Y << ")\n";
+	std::cout << "\n Ending at: (" << End_X << "," << End_Y << ")\n";
 }

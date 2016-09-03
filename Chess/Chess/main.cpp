@@ -27,7 +27,7 @@ void printUsage(std::string name) {
 //Task1: Sequence validation
 
 int main(int argc, char* argv[]) {
-	
+	//just init..will not be used.
 	size_t L = 0;
 	size_t BOARD_HEIGHT = 8;
 	size_t BOARD_WIDTH = 8;

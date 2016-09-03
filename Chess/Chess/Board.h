@@ -68,11 +68,11 @@ struct Board {
 		Position E{ X, Y };
 		if (isPointWithinBoundary(X, Y)) {
 			if (boardData[Y][X] == "R" || boardData[Y][X] == "B") {
-				std::cout << "Can not End at a Rock or Barrier\n";
+				std::cout << "\nCan not End at a Rock or Barrier\n";
 				return false;
 			}
 			if (boardData[Y][X] == "T") { //If starting from a T location, 
-				std::cout << "Ending at a Teleport location\n";
+				std::cout << "\nEnding at a Teleport location\n";
 				E.X = X;
 				E.Y = Y;
 				//canTeleport(E);
@@ -186,7 +186,16 @@ struct Board {
 		//Retrieve the best path for future use
 		bestPath.clear();
 		Position curr{ getEnd() }, visitedFrom{ getEnd() };
-		bestPath.push_back(curr);
+
+		if (boardData[getEnd().Y][getEnd().X] == "T") {
+			Position temp = getEnd();
+			canTeleport(temp);
+			bestPath.push_back(temp);
+		}
+		else {
+			bestPath.push_back(curr);
+		}
+		
 		float pathCost = 0;
 		pathCost = visited[curr.Y][curr.X].cost.H;		//Visited's H cost is the total cost of reaching the cell
 		
@@ -281,7 +290,6 @@ struct Board {
 		while (std::getline(fs, line, delim) && spaceOnBoard)
 		{
 			for (auto c : line) {
-				std::cout << "char " << c << "\n";
 				switch (c)
 				{
 				case 'S':
@@ -298,7 +306,6 @@ struct Board {
 					//If a T location is encountered, keep it. We will need an even number of location for teleport
 					Tlocs.push_back(id_x);
 					Tlocs.push_back(id_y);
-					std::cout << "Tpt " << id_x <<","<< id_y << "\n";
 					if (Tlocs.size() == 4) {
 						addTeleportPoints(Tlocs[0], Tlocs[1], Tlocs[2], Tlocs[3]);
 						Tlocs.clear(); //Reset for next points;
@@ -319,7 +326,7 @@ struct Board {
 					id_x = 0;
 					++id_y;
 					if (id_y == height) {
-						std::cout << "File has more data than board size. Only reading first " << height*width << " entries of file\n";
+						std::cout << "File has more data than board size. Only reading first " << height*width << " entries of file\n\n";
 						spaceOnBoard = false;
 						break;
 					}
