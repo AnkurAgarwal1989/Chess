@@ -281,6 +281,7 @@ struct Board {
 		while (std::getline(fs, line, delim) && spaceOnBoard)
 		{
 			for (auto c : line) {
+				std::cout << "char " << c << "\n";
 				switch (c)
 				{
 				case 'S':
@@ -297,6 +298,7 @@ struct Board {
 					//If a T location is encountered, keep it. We will need an even number of location for teleport
 					Tlocs.push_back(id_x);
 					Tlocs.push_back(id_y);
+					std::cout << "Tpt " << id_x <<","<< id_y << "\n";
 					if (Tlocs.size() == 4) {
 						addTeleportPoints(Tlocs[0], Tlocs[1], Tlocs[2], Tlocs[3]);
 						Tlocs.clear(); //Reset for next points;
@@ -315,12 +317,13 @@ struct Board {
 
 				if (id_x == width) { //A row in the grid is now full. Move to next row, first column
 					id_x = 0;
+					++id_y;
 					if (id_y == height) {
 						std::cout << "File has more data than board size. Only reading first " << height*width << " entries of file\n";
 						spaceOnBoard = false;
 						break;
 					}
-					++id_y;
+					//++id_y;
 				}
 			}
 
