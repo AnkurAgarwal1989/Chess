@@ -77,7 +77,6 @@ int main(int argc, char* argv[]) {
 	bool findShortestPath = true;
 
 	setupBoard(KB, Start_X, Start_Y, End_X, End_Y, layoutFfilename);
-	std::cout << "1.Initial state of Knight Board \n";
 	KB.printBoardState();
 
 	switch (L)

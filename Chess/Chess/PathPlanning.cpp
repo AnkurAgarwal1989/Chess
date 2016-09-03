@@ -19,6 +19,18 @@ void printPath(const std::vector<Position>& P)
 //If A* is used, the cost also includes the distance from the End goal.
 bool findPathAhead(Board<std::string>& B, BoardData<Move>& visited, Moves& openNodes, bool useDistanceHeuristic)
 {
+	//If the start is a teleport point. mark the start as visited and start from teleport point
+	Position S = B.getStart();
+	if (B.canTeleport(S)) {
+		visited[S.Y][S.X].cost.G = -1;  //Don't mark this node visited if it's a teleport
+		printBoardData(visited);
+		B.setStart(S.X, S.Y);
+		B.setPoint(S.X, S.Y, "T");
+	}
+	else {
+		visited[S.Y][S.X].cost.G = 0;  //Start node can be marked visited
+	}
+
 	Moves possMoves;
 	int moveCntr = 0;
 	Move start;
@@ -28,7 +40,7 @@ bool findPathAhead(Board<std::string>& B, BoardData<Move>& visited, Moves& openN
 	bool goalReached = false;
 	bool noMovesLeft = false;
 	while (!openNodes.empty()) {
-		
+		printBoardData(visited);
 		std::sort(openNodes.begin(), openNodes.end(), sortMovesDesc);// Descending. We will pop the nodes from the end. Smallest cost nodes popped first
 		
 		Move parent = openNodes[openNodes.size() - 1]; //Get element with smallest cost
@@ -41,7 +53,7 @@ bool findPathAhead(Board<std::string>& B, BoardData<Move>& visited, Moves& openN
 			return true;
 		}
 
-		int costAtCurrentNode = visited[parent.pos.Y][parent.pos.X].cost.G;
+		int costAtCurrentNode = visited[parent.pos.Y][parent.pos.X].cost.H;
 
 		//get a list of valid moves
 		B.getValidMoves(parent.pos, possMoves, useDistanceHeuristic); //A*
@@ -49,13 +61,13 @@ bool findPathAhead(Board<std::string>& B, BoardData<Move>& visited, Moves& openN
 		for (auto move : possMoves) {
 			int costOfNextNode = move.cost.G;
 			if (visited[move.pos.Y][move.pos.X].cost.G > -1 &&									//if already visited and 
-				visited[move.pos.Y][move.pos.X].cost.G <= costAtCurrentNode + costOfNextNode) {	//new cost worse than old cost, continue
+				visited[move.pos.Y][move.pos.X].cost.H <= costAtCurrentNode + costOfNextNode) {	//new cost worse than old cost, continue
 				continue;
 			}
 			//We have a better way of getting here
 			else {
-				visited[move.pos.Y][move.pos.X].cost.H = moveCntr++;
-				visited[move.pos.Y][move.pos.X].cost.G = costAtCurrentNode + costOfNextNode;
+				visited[move.pos.Y][move.pos.X].cost.G = 0;
+				visited[move.pos.Y][move.pos.X].cost.H = costAtCurrentNode + costOfNextNode;
 				visited[move.pos.Y][move.pos.X].pos = parent.pos;
 				move.cost.G = costAtCurrentNode + costOfNextNode; //Update the cost of getting to this node, Heuristic should not be used for sorting moves on open nodes
 				openNodes.push_back(move);							   //Add to list of explorable nodes
@@ -71,11 +83,8 @@ bool findPathAhead(Board<std::string>& B, BoardData<Move>& visited, Moves& openN
 bool solveForBestPath(Board<std::string>& B, std::vector<Position>& bestPath, bool useDistanceHeuristic) {
 	Moves openNodes;
 	//Initialise the visited data with -1 cost and out of bounds positions
+	//For visited, G&H are repurposed to be visitedFlag and cost, resp.
 	BoardData<Move> visited = BoardData<Move>{ B.height , std::vector<Move>{B.width, Move(Cost{-1, 0}, Position{ B.width, B.height }) } };
-
-	//Cost of Start is 0
-	visited[B.getStart().Y][B.getStart().X].cost.G = 0;
-
 	if (findPathAhead(B, visited, openNodes, useDistanceHeuristic)) {
 		int pathCost = 0;
 		pathCost = B.getPathStart2End(visited, bestPath);

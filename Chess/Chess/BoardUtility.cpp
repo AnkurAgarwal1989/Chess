@@ -2,14 +2,14 @@
 
 //Function to sort on cost of Move in Ascending order.
 bool sortMoves(Move& lhs, Move& rhs) {
-	return lhs.cost.G < rhs.cost.G;
+	return lhs.cost.G + lhs.cost.H < rhs.cost.G + rhs.cost.H;
 };
 
 //Function to sort on cost of Move in Descending order.
 //Sorting by sum of cost and heuristic
 bool sortMovesDesc(Move& lhs, Move& rhs) {
 	//return (lhs.first.first + lhs.first.second) > (rhs.first.first + rhs.first.second);
-	return lhs.cost.G > rhs.cost.G;
+	return lhs.cost.G + lhs.cost.H > rhs.cost.G + rhs.cost.H;
 };
 
 

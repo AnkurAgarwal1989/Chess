@@ -38,6 +38,21 @@ struct Board {
 	}
 
 	bool setStart(const unsigned int X, const unsigned int Y) {
+		Position S{ X, Y };
+		if (isPointWithinBoundary(X, Y)) {
+			if (boardData[Y][X] == "R" || boardData[Y][X] == "B") {
+				std::cout << "Can not Start from a Rock or Barrier\n";
+				return false;
+			}
+			if (boardData[Y][X] == "T") { //If starting from a T location, 
+				std::cout << "Starting from a Teleport location\n";
+				S.X = X;
+				S.Y = Y;
+				Start.X = S.X;
+				Start.Y = S.Y;
+				return true;
+			}
+		}
 		if (setPoint(X, Y, "S")) {
 			Start.X = X;
 			Start.Y = Y;
@@ -51,6 +66,22 @@ struct Board {
 	}
 
 	bool setEnd(const unsigned int X, const unsigned int Y) {
+		Position E{ X, Y };
+		if (isPointWithinBoundary(X, Y)) {
+			if (boardData[Y][X] == "R" || boardData[Y][X] == "B") {
+				std::cout << "Can not End at a Rock or Barrier\n";
+				return false;
+			}
+			if (boardData[Y][X] == "T") { //If starting from a T location, 
+				std::cout << "Ending at a Teleport location\n";
+				E.X = X;
+				E.Y = Y;
+				//canTeleport(E);
+				End.X = E.X;
+				End.Y = E.Y;
+				return true;
+			}
+		}
 		if (setPoint(X, Y, "E")) {
 			End.X = X;
 			End.Y = Y;
@@ -151,18 +182,29 @@ struct Board {
 		//Retrieve the best path for future use
 		bestPath.clear();
 		Position curr{ getEnd() }, visitedFrom{ getEnd() };
-		bestPath.push_back(curr);
 		int pathCost = 0;
-		pathCost = visited[curr.Y][curr.X].cost.G;
-		while (visitedFrom != getStart()) {					//While we reach the beginning cell
+		pathCost = visited[curr.Y][curr.X].cost.H;
+		while (1){//(curr != getStart()) {					//While we reach the beginning cell
+			bestPath.push_back(curr);
+			std::cout << "current loc: " << curr.X << "," << curr.Y << "\n";
 			visitedFrom = visited[curr.Y][curr.X].pos;	//How did we land at this cell
-			curr = visitedFrom;								//Make the landing cell as new focus location
-			canTeleport(visitedFrom);						//Did we teleport to this location? If yes, we need to get the teleport origin			
-			bestPath.push_back(visitedFrom);				//Append landing location to path. if we teleported, the path should be the teleport origin
+			std::cout << "visited from loc: " << visitedFrom.X << "," << visitedFrom.Y << "\n";
+			curr = visitedFrom;
+			if (canTeleport(curr)) {
+				std::cout << "teleported: " << curr.X << "," << curr.Y << "\n";
+			}
+			//if (visitedFrom == getStart())
+			//	break;
+			//canTeleport(curr);						//Did we teleport to this location? If yes, we need to get the teleport origin			
+			//bestPath.push_back(curr);				//Append landing location to path. if we teleported, the path should be the teleport origin
 		}
 
 		//Needs to be reversed because we are going from End to Start. We want path from S to E.
 		std::reverse(bestPath.begin(), bestPath.end());
+		std::cout << "BestPath\n";
+		for (auto p : bestPath) {
+			std::cout << "current loc: " << p.X << "," << p.Y << "\n";
+		}
 		return pathCost;
 	}
 
@@ -185,16 +227,19 @@ struct Board {
 					int newY = K.Y + My[(direction * 2) + i];
 					if (isValidMove(newX, newY)) { //Is valid Move should return cost of the move
 						Position newP{ newX, newY };
-						Position temp{ newP };
+						//std::cout << "validmove " << newX <<"," << newY << "\n";
 						if (canTeleport(newP)) {
-							//std::cout << "Teleport cell detected";
+							//std::cout << "This can take us to a Teleport cell\n";
 						}
 						
 						int G = COST[boardData[newP.Y][newP.X]];
 						int H = 0;
 						//If A* algo...the cost also includes the distance from END
-						if (useDistanceHeuristic)
+						if (useDistanceHeuristic) {
 							H = std::abs(static_cast<int>(newP.X) - static_cast<int>(getEnd().X)) + std::abs(static_cast<int>(newP.Y) - static_cast<int>(getEnd().Y));
+							if (H < 3)
+								H += 6;
+						}
 						possibleMoves.push_back({ Cost{G, H} , newP });
 					}
 				}
@@ -235,24 +280,24 @@ struct Board {
 			return false;
 			exit(0);
 		}
-		std::cout << "Reading layout from file " << filename << "\n";
 		std::string line;
 		size_t id_x = 0;
 		size_t id_y = 0;
 		std::vector<unsigned int> Tlocs(0);
 		bool spaceOnBoard = true;
-		std::cout << "Here";
 		while (std::getline(fs, line, delim) && spaceOnBoard)
 		{
 			for (auto c : line) {
 				switch (c)
 				{
 				case 'S':
-					setStart(id_x, id_y);
+					//Start point NOT to be read from file.
+					setPoint(id_x, id_y, ".");
 					break;
 
 				case 'E':
-					setEnd(id_x, id_y);
+					//End point NOT to be read from file.
+					setPoint(id_x, id_y, ".");
 					break;
 
 				case 'T':
@@ -277,14 +322,13 @@ struct Board {
 
 				if (id_x == width) { //A row in the grid is now full. Move to next row, first column
 					id_x = 0;
+					if (id_y == height) {
+						std::cout << "File has more data than board size. Only reading first " << height*width << " entries of file\n";
+						spaceOnBoard = false;
+						break;
+					}
 					++id_y;
 				}
-				if (id_y == height) {
-					std::cout << "File has more data than board size. Only reading first " << height*width << " entries of file\n";
-					spaceOnBoard = false;
-					break;
-				}
-				//std::cout << c;
 			}
 
 		}

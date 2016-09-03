@@ -103,8 +103,6 @@ void setupBoard(Board<std::string>& KB, size_t Start_X, size_t Start_Y, size_t E
 			std::cout << "Starting and Ending points are the same. \n";
 			exit(1);
 		}
-		std::cout << "Initial State of Knight Board \n";
-		KB.printBoardState();
 	}
 	else {
 		std::cout << "Start or End Point is OUTSIDE checkerboard area. Exiting";
